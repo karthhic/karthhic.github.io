@@ -1,66 +1,139 @@
+<!-- DOCTYPE -->
 <!DOCTYPE html>
-<html>
-  <head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-    
-    
-    
-    <style>
-body {
-background-image: url('/pix/samples/bg1.gif');
+<html lang="en">
+<head>
+  <title>Bootstrap Example Template</title>
+  <meta charset="utf-8">
+  <!-- Viewport Meta Tag -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+  <style>
+  @import url('https://fonts.googleapis.com/css?family=BioRhyme');
+  @import url('https://fonts.googleapis.com/css?family=Baloo');
+  @import url('https://fonts.googleapis.com/css?family=Open+Sans+Condensed');
+div.container {
+    width: 100%;
+    border: 1px solid gray;
 }
 
-main {
-margin-bottom: 200%;
+header, footer {
+    padding: 1em;
+    color: #333;
+    clear: left;
+	font-size: x-large;
+	font-family: BioRhyme;
+    text-align: center;
 }
 
-.floating-menu {
-font-family: sans-serif;
-background: yellowgreen;
-padding: 5px;;
-width: 700px;
-z-index: 100;
+end{
+color: #333;
 position: fixed;
-top: 0px;
+bottom: 5px;
 right: 0px;
 }
 
-.floating-menu a, 
-.floating-menu h3 {
-font-size: 0.9em;
-display: block;
-margin: 0 0.5em;
-color: white;
+body {
+  background: #333;
+  color: #fff;
+  background-image:url(https://lh3.googleusercontent.com/TiBv58-xQFpX8qhIKneLzynt7PxlZey4ZD0SlnIX04FZ10Dkh71uOFmprHDVIzRmeJshEyE4vgt2IptFJ37jAg2a822pniyWfPeDWSTArqMVF9VGgDIK4O4n1sQxVfXMoqIsSS7ynVAHU4JahEoTZgXkyjB9kY3RQRwmCAdkb-Gy05WXHjfCmT_f8SUQ5z3qkDY4JI4tRqwQr5a8-klgwIUyeBs8eTptK-nEwE9ZYnDvGjFR9A0mZS4lG3DG4Grdx6mj6kNVpa5lnLUGlJu4KYv7HlQjNCPTkuimU_9vtfDVjlp0UlvFRlC7ZEI7ng226zbD-W2LQ3dHEggVhw0qAbCdn7MlpdYylN2vSTZylskxblMRRAUt2LG2zNlAl5bepDdnDzBuF3seF1wHkwlqb_CCi43CZ_f31I_WpO-5tUUW3Jvg8udqZ6hj9Q5bY15-iVFYzDglTccrLe43MEVJ9B8fxfd13COYTWLzO7z9ArYohoo0P-2xghDRuDv_eDs8sAARASzL8fVdXdBAvVLM-ERH7G6Cfr5XidQaApeBUsr7Z3cU4__PWjKwggOPb-h2s-7cPNziKY0uDT_tgEgsPH2wHf22apgXx2sYm7qvvg67baVzmZspFt0I_cU-63byY8fzwM_cRM_VtVRj0BKbU_CXvOhHODcgl4UpOoZrajI=w1403-h789-no);
+  no-repeat center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
 }
+
+type {
+  color: #333;
+  font-family: BioRhyme;
+  display: flex;
+  justify-content: center;
+}
+
+article {
+    margin-left: 170px;
+    border-left: 1px solid gray;
+	background-image:url(http://www.ianbarnard.co.uk/wp-content/uploads/2013/03/Blueprint_Background.jpg);
+    padding: 1em;
+    overflow: hidden;
+}
+
+.typewriter h1 {
+  overflow: hidden; /* Ensures the content is not revealed until the animation */
+  border-right: .15em solid orange; /* The typwriter cursor */
+  white-space: nowrap; /* Keeps the content on a single line */
+  margin: 0 auto; /* Gives that scrolling effect as the typing happens */
+  letter-spacing: .05em; /* Adjust as needed */
+  animation: 
+    typing 6.5s steps(40, end),
+    blink-caret .75s step-end infinite;
+	
+}
+
+/* The typing effect */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: white; }
+}
+
+
 </style>
-  </head>
-<body  style="background-color:powderblue;">
-  <h1>Karthhic Ramachandran Ponnalagi</h1>
   
-  
-  <nav class="floating-menu">
-<h3>Floating Menu</h3>
+</head>
+<body>
 
-<a href="http://www.quackit.com/css/">CSS</a>
-<a href="http://www.quackit.com/html/">HTML</a>
-<a href="http://www.quackit.com/coldfusion/">ColdFusion</a>
-<a href="http://www.quackit.com/database/">Database</a>
 
+<nav class="navbar navbar-default">
+	<div class="container-fluid">
+	
+		<!-- Brand/logo -->
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#example-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="index.html">KARTHHIC R PONNALAGI</a>
+		</div>
+		
+		<!-- Collapsible Navbar -->
+		<div class="collapse navbar-collapse" id="example-1">
+			<ul class="nav navbar-nav">
+				<li><a href="portfolio.html">PORTFOLIO</a></li>
+				<li><a href="project.html">PROJECTS</a></li>
+				<li><a href="resume.html">RESUME</a></li>
+			</ul>
+		</div>
+	
+	</div>
 </nav>
-<h4> Under Construction </h4>
-  
-<iframe width="420" height="345" src="https://www.youtube.com/embed/xO-heslAk-Q">
-</iframe><br>
-  
-<iframe width="420" height="345" src="https://www.youtube.com/embed/xqhvkTRf5D0">
-</iframe><br>
-  
-  
-<svg width="400" height="400">
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" style="enable-background:new 0 0 45 45;" xml:space="preserve" version="1.1" id="svg2"><metadata id="metadata8"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/></cc:Work></rdf:RDF></metadata><defs id="defs6"><clipPath id="clipPath16" clipPathUnits="userSpaceOnUse"><path id="path18" d="M 0,36 36,36 36,0 0,0 0,36 Z"/></clipPath></defs><g transform="matrix(1.25,0,0,-1.25,0,45)" id="g10"><g id="g12"><g clip-path="url(#clipPath16)" id="g14"><g transform="translate(36,18)" id="g20"><path id="path22" style="fill:#ffcc4d;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 0,0 c 0,-9.941 -8.059,-18 -18,-18 -9.941,0 -18,8.059 -18,18 0,9.941 8.059,18 18,18 C -8.059,18 0,9.941 0,0"/></g><g transform="translate(1.2402,24.9824)" id="g24"><path id="path26" style="fill:#292f33;fill-opacity:1;fill-rule:evenodd;stroke:none" d="m 0,0 c 0.24,-0.239 1.437,-0.958 1.677,-1.675 0.24,-0.717 0.72,-4.784 2.158,-5.981 1.484,-1.233 7.077,-0.774 8.149,-0.24 2.397,1.195 2.691,4.531 3.115,6.221 0.239,0.957 1.677,0.957 1.677,0.957 0,0 1.439,0 1.678,-0.956 0.424,-1.691 0.72,-5.027 3.115,-6.221 1.073,-0.535 6.666,-0.994 8.152,0.239 1.435,1.197 1.915,5.264 2.155,5.982 0.238,0.717 1.437,1.435 1.677,1.674 0.241,0.239 0.241,1.196 0,1.436 C 33.074,1.914 27.419,2.34 21.33,1.675 20.115,1.542 19.653,1.196 16.776,1.196 13.901,1.196 13.437,1.542 12.223,1.674 6.136,2.34 0.479,1.914 0,1.436 -0.239,1.196 -0.239,0.239 0,0"/></g><g transform="translate(27.335,12.3711)" id="g28"><path id="path30" style="fill:#664500;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 0,0 c -0.178,0.161 -0.444,0.171 -0.635,0.029 -0.039,-0.029 -3.922,-2.9 -8.7,-2.9 -4.766,0 -8.662,2.871 -8.7,2.9 -0.191,0.142 -0.457,0.13 -0.635,-0.029 -0.177,-0.16 -0.217,-0.424 -0.094,-0.628 0.129,-0.215 3.217,-5.243 9.429,-5.243 6.212,0 9.301,5.028 9.429,5.243 C 0.217,-0.423 0.178,-0.16 0,0"/></g></g></g></g></svg>
-</svg>
+
+<header>
+   <p style="color:#333;font-size:72px;font-family:Baloo;">KARTHHIC RAMACHANDRAN PONNALAGI</p>
+</header>
+</br></br></br></br></br></br>
+<type>
+<div class="typewriter"><center>
+  <h1>I am an Automation Engineer, DIY Enthisiast.</h1></center>
+</div>
+</type>
+</br></br></br></br></br></br>
+<center><a href="portfolio.html" class="btn btn-lg btn-default">Learn more</a></center>
+<end><p style="color:#fff;font-size:20px;font-family:'Open Sans Condensed';">PC: Shriram Nandakumar</p></end>
+
+  <!-- JavaScript: placed at the end of the document so the pages load faster -->
+  <!-- JQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 </body>
 </html>
