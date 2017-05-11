@@ -1,0 +1,156 @@
+<!-- DOCTYPE -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Karthhic's Projects</title>
+  <meta charset="utf-8">
+  <!-- Viewport Meta Tag -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="bootstrap.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css?family=Rancho');
+  @import url('https://fonts.googleapis.com/css?family=Inconsolata');
+  @import url('https://fonts.googleapis.com/css?family=Sue+Ellen+Francisco');
+    body {
+  background: #333;
+  background-image:url("http://www.babaimage.com/images/free-metal-textures-galvanized-metal-texture-steel-plate-high.jpg");
+  no-repeat center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+}
+
+kaz {
+    color: #333;
+    clear: left;
+	font-size: large;
+	font-family: Inconsolata;
+    text-align: justify;
+}
+  
+</style>
+</head>
+<body>
+<nav class="navbar navbar-default">
+	<div class="container-fluid">
+	
+		<!-- Brand/logo -->
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#example-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="index.html">KARTHHIC R PONNALAGI</a>
+		</div>
+		
+		<!-- Collapsible Navbar -->
+		<div class="collapse navbar-collapse" id="example-1">
+			<ul class="nav navbar-nav">
+				<li><a href="portfolio.html">PORTFOLIO</a></li>
+				<li class="active"><a href="project.html">PROJECTS<span class="sr-only">(current)</span></a></li>
+				<li><a href="resume.html">RESUME</a></li>
+			</ul>
+		</div>
+	
+	</div>
+</nav>
+
+  <!-- YOUR CONTENT GOES HERE -->
+  
+  <div class="container">
+<div class="panel panel-default">
+<div class="panel-heading">
+<h1 class="panel-title">Mitsubishi RV-2AJ Robot Programming for Festo assembly line</h1>
+</div>
+<div class="panel-body">
+
+<center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xO-heslAk-Q" frameborder="0" allowfullscreen></iframe></center>
+<kaz></br><p>&nbsp; This shows the assembly of plastic piston with its cylinder nicknamed as the marriage. the robot will pick the cylinder from the conveyor and assembles the piston, spring, and covers it using the cap [yeah... polygamy]. To see each steps and the programs the link to the <a target="_blank" href="https://sites.google.com/site/karthhic/home/Home">Programs and its videos</a> </p></kaz>
+</div>
+</div>
+</div>
+
+<div class="container">
+<div class="panel panel-default">
+<div class="panel-heading">
+<h1 class="panel-title">Distributed and embedded control using FBDK [IEC 61499]</h1>
+</div>
+<div class="panel-body">
+
+<center><iframe width="560" height="315" src="https://www.youtube.com/embed/xqhvkTRf5D0" frameborder="0" allowfullscreen></iframe> </center>
+<kaz></br><p>&nbsp;	A system using FBDK Function Blocks. A sample system with two assembly, two painting, one Welding, one quality check station.
+</p></br><p>&nbsp;
+The production system is composed of 7 work stations (shown as rectangles). There are 2 assembly workstations, 2 painting workstations, one welding, one quality check and one packaging workstations. The inputs of raw materials come to the Assemble 1 and Welding workstations. On each of the input "branches" after the assembly and welding operations, the workpieces are painted (Painting A and Painting B workstations). The subassemblies are joint together in the Assembly 2 station. There comes then Quality check that removes failed products from going further and the good products are packaged at the packaging station.
+</p></br><p>&nbsp;
+Each workstation has its dedicated controller (device). The devices use Internet Protocol for communication between each other. Each workstation has a dedicated HMI, showing allowing to adjust a cycle time of the station and check the state machine is in (idle or busy). The HMI for the Quality workstation, should have a button allowing to reject the product coming to the workstation and the counter of products rejected so far.
+</p></br><p>&nbsp;
+Packaging station should give a pallet of finished products having the pallet containing 4 products.
+</p></br><p>&nbsp;
+
+The <a target="_blank" href="http://www.holobloc.com/doc/despats/mvc/">MVC pattern</a> is used to design the whole system. Its a layered design where three layers </br>
+<div class="panel panel-default">
+<div class="panel-body">
+<h3>Model</h3> A function block that represents the time-dependent logical behavior of the system or device being controlled. The model is typically replaced by Interface elements to the actual physical system once the corresponding Controller class has been validated.<h3>View</h3>An element that represents the graphical display and possibly user input associated with one or more Model types, typically implemented as one or more service interface function blocks.</br><h3>Controller</h3>A function block that encapsulates the control functions to be performed on one or more instances of associated Model types, and presents appropriate event and data interfaces for integration of its functions with those of other Controller blocks.</br> <p style="text-align:right">Text copied from <a target="_blank" href="http://www.holobloc.com/doc/despats/mvc/">Holobloc Website</a></br>
+</p>
+</div>
+</div>
+Useful Links:</br>
+<a target="_blank" href="http://www.holobloc.com/">Holobloc Website</a></br>
+<a target="_blank" href="http://www.holobloc.com/papers/iec61499/61499_ED2_OVW.pdf">IEC 61499 Function Block Standard</a> </p>
+
+<div class="row">
+
+<div class="col-xs-6 col-md-3">
+<a target="_blank"  href="https://lh3.googleusercontent.com/-OrStTNmhGHg/WQt2nUes7SI/AAAAAAAAZOI/-xlO6fo82CcmaEiOtdeKTqHg4oVnjLeyACLcB/s1600/ECC%2BCheatsheet.png" class="thumbnail">
+<img src="https://lh3.googleusercontent.com/-OrStTNmhGHg/WQt2nUes7SI/AAAAAAAAZOI/-xlO6fo82CcmaEiOtdeKTqHg4oVnjLeyACLcB/s1600/ECC%2BCheatsheet.png" alt="ECC Cheatsheet">
+</a>
+</div>
+
+<div class="col-xs-6 col-md-3">
+<a target="_blank"  href="http://www.bogotobogo.com/DesignPatterns/images/mvc/mvc_diagram.png" class="thumbnail">
+<img src="http://www.bogotobogo.com/DesignPatterns/images/mvc/mvc_diagram.png" alt="ECC Cheatsheet">
+</a>
+</div>
+
+</div>
+</kaz>
+
+
+</div>
+</div>
+</div>
+
+<div class="container">
+<div class="panel panel-default">
+<div class="panel-heading">
+<h1 class="panel-title">Agent-based control of a production system</h1>
+</div>
+<div class="panel-body">
+<center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/oA4NS0KtsXo" frameborder="0" allowfullscreen></iframe>
+</center>
+<kaz></br><p>	 <h3>Task description:</h3>
+</p><p>&nbsp; 
+The production system (physically located in Ri208, simulator of the system - <a target="_blank" href="http://escop.rd.tut.fi:3000/fmw">Fastory Simulator</a>) is composed of 12 work stations. The line makes mobile phones that can come in 729 variations (3 screen shapes * 3 colours * 3 keyboard shapes * 3 colours * 3 frame shapes * 3 colours). 10 workstations (WS2-WS6; WS8-WS12) are in charge of making mentioned frames, screens and keyboards. A product can be seen as a combination of a frame, a screen and a keyboard.
+</p><p>&nbsp; 
+<h3>FASTory production line</h3>
+</p><p>&nbsp; 
+The line is controlled using MAS (Multi-Agent System). The agents will communicate by posting messages to each other.
+</p><p>&nbsp; 
+As a system receives an order to make a mobile phone, the agents should negotiate between each other developing the way to make the phone and then executing actual production of the phone.</p></kaz>
+</div>
+</div>
+</div>
+
+  <!-- JavaScript: placed at the end of the document so the pages load faster -->
+  <!-- JQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+</body>
+</html>
