@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Room Temperature</h2>
+<p>Temperature in degree C</p>
+
+<p id="demo"></p>
+
+<script>
+
+var xmlhttp = new XMLHttpRequest();
+xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var myObj = JSON.parse(this.responseText);
+        document.getElementById("demo").innerHTML = myObj.with[0].content.payload+" Deg C";
+    }
+};
+xmlhttp.open("GET", "https://dweet.io/get/latest/dweet/for/kartroomtemp", true);
+xmlhttp.send();
+
+</script>
+
+</body>
+</html>
