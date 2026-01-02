@@ -45,6 +45,7 @@ HTML/CSS = DESIGN (how it looks)
   --bg-alt:#cecbcd;
   --Linesp:1.25;
   --FntSz:9.5pt;
+  --filler:#cecbcd;
 }
 
 * { box-sizing:border-box; margin:0; padding:0; }
@@ -174,7 +175,7 @@ a:hover { text-decoration:underline; }
   display:flex;
   flex-wrap:wrap;
   gap:8px;
-  background:var(--bg);
+  
 }
 .tag {
   padding:3px 10px;
@@ -182,6 +183,7 @@ a:hover { text-decoration:underline; }
   border:1px solid var(--border);
   font-size:0.82em;
   color:var(--accent);
+  background:var(--filler);
 }
 
 /* =========================
@@ -198,8 +200,8 @@ a:hover { text-decoration:underline; }
   gap:16px;
 }
 .layout-two #resume .left {
-  background:color-mix(in srgb, var(--bg-alt) 45%, white 55%);
-  border:1px solid var(--border);
+  background:var(--filler);
+  border:1px solid var(--filler);
   border-radius:10px;
   padding:12px;
 }
@@ -291,6 +293,7 @@ a:hover { text-decoration:underline; }
   <div class="ctrl"><label>SubText</label><input type="color" value="#7f8c8d" data-var="--muted"></div>
   <div class="ctrl"><label>Background</label><input type="color" value="#ffffff" data-var="--bg"></div>
   <div class="ctrl"><label>Line</label><input type="color" value="#c28585" data-var="--border"></div>
+  <div class="ctrl"><label>Filler</label><input type="color" value="#c28585" data-var="--filler"></div>
 
   <div class="ctrl mini">
     <div>
@@ -782,7 +785,7 @@ function renderTwoColumn(d) {
       <h1>${safe(p.name)}</h1>
       <div class="subtitle">${safe(p.title)}</div>
       <div class="contact">
-        ${joinNonEmpty([p.email, p.phone, p.website], " · ")}
+       <!-- ${joinNonEmpty([p.email, p.phone, p.website], " · ")}  -->
       </div>
     </div>
     <div class="two">
