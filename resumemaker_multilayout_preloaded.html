@@ -1,0 +1,894 @@
+<!--
+=====================================================================
+ RESUME MAKER – MULTI LAYOUT VERSION (COMMENTED)
+=====================================================================
+
+WHAT THIS FILE DOES (IN SIMPLE WORDS):
+------------------------------------
+• You upload a resume JSON file (your data)
+• You choose how the resume should LOOK (layout & colors)
+• The same data can be shown in many styles
+• You can print the result as a PDF
+
+IMPORTANT IDEA:
+---------------
+JSON = CONTENT (what your resume says)
+HTML/CSS = DESIGN (how it looks)
+
+=====================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resume Maker (Multi-Layout)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/*
+  CSS STYLING SECTION
+  ------------------
+  Everything here controls visual appearance:
+  - Colors
+  - Fonts
+  - Spacing
+  - Layout styles
+*/
+
+:root {
+  --primary:#1a5490;
+  --accent:#2c3e50;
+  --text:#2c3e50;
+  --muted:#7f8c8d;
+  --border:#c28585;
+  --bg:#ffffff;
+  --bg-alt:#cecbcd;
+  --Linesp:1.25;
+  --FntSz:9.5pt;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  font-family:Segoe UI, Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  max-width:210mm;
+  margin:auto;
+  padding:14mm 16mm;
+  font-size:var(--FntSz);
+}
+
+/* Controls */
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px 16px;
+  margin-bottom:16px;
+  padding:12px;
+  background:var(--bg-alt);
+  border:2px solid var(--border);
+  border-radius:8px;
+  align-items:flex-end;
+}
+
+.controls .ctrl {
+  font-size:0.78em;
+}
+
+.controls label {
+  display:block;
+  margin-bottom:4px;
+  color:var(--accent);
+  font-weight:600;
+}
+
+.controls input[type="color"] {
+  display:block;
+  height:30px;
+  width:64px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:#fff;
+}
+
+.controls input[type="range"], .controls select {
+  display:block;
+  height:32px;
+  width:170px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:0 8px;
+  background:#fff;
+  color:var(--text);
+}
+
+.controls .mini {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+input[type="file"] { margin-bottom:10px; }
+
+/* Shared resume typography */
+.section {
+  margin-bottom:12px;
+  page-break-inside:avoid;
+  line-height:var(--Linesp);
+}
+
+.section h2 {
+  font-size:1.05em;
+  color:var(--primary);
+  border-bottom:2px solid var(--border);
+  margin-bottom:6px;
+  padding-bottom:2px;
+}
+
+header {
+  border-bottom:3px solid var(--primary);
+  margin-bottom:12px;
+  padding-bottom:10px;
+}
+
+h1 {
+  font-size:1.7em;
+  color:var(--primary);
+  line-height:1.1;
+}
+
+.subtitle {
+  font-size:1em;
+  color:var(--accent);
+  margin-top:2px;
+}
+
+.contact {
+  font-size:0.95em;
+  color:var(--muted);
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:6px;
+}
+
+a { color:var(--primary); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+.item { margin-bottom:8px; }
+.item-header {
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:6px 10px;
+}
+.title { font-weight:700; color:var(--accent); }
+.company { font-style:italic; color:var(--muted); font-size:0.92em; }
+.duration { font-size:0.85em; color:var(--muted); }
+
+.desc { margin-top:3px; color:var(--text); }
+
+/* Tags */
+.tags {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  background:var(--bg);
+}
+.tag {
+  padding:3px 10px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:0.82em;
+  color:var(--accent);
+}
+
+/* =========================
+   LAYOUTS
+   ========================= */
+
+/* Layout 1: Classic (single column) */
+.layout-classic #resume {}
+
+/* Layout 2: Two-column */
+.layout-two #resume .two {
+  display:grid;
+  grid-template-columns: 32% 68%;
+  gap:16px;
+}
+.layout-two #resume .left {
+  background:color-mix(in srgb, var(--bg-alt) 45%, white 55%);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+}
+.layout-two #resume .right { padding:2px 2px; }
+
+.layout-two #resume header {
+  border-bottom:0;
+  margin-bottom:8px;
+  padding-bottom:0;
+}
+.layout-two #resume .nameblock {
+  border-bottom:3px solid var(--primary);
+  padding-bottom:10px;
+  margin-bottom:12px;
+}
+
+/* Layout 3: Timeline */
+.layout-timeline #resume .timeline {
+  border-left:3px solid var(--primary);
+  padding-left:16px;
+  margin-top:6px;
+}
+.layout-timeline #resume .event {
+  position:relative;
+  margin-bottom:12px;
+  padding-left:10px;
+}
+.layout-timeline #resume .event:before {
+  content:"";
+  position:absolute;
+  left:-24px;
+  top:4px;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--primary);
+}
+.layout-timeline #resume .event .when {
+  font-size:0.85em;
+  color:var(--muted);
+}
+.layout-timeline #resume .event h3 {
+  font-size:1em;
+  color:var(--accent);
+  margin-top:2px;
+}
+
+/* Layout 4: Compact */
+.layout-compact #resume .compact header { margin-bottom:10px; }
+.layout-compact #resume .compact .contact { font-size:0.9em; gap:10px; }
+.layout-compact #resume .compact .section { margin-bottom:10px; }
+.layout-compact #resume .compact ul { margin-top:4px; padding-left:16px; }
+.layout-compact #resume .compact li { margin-bottom:2px; }
+.layout-compact #resume .compact .tags .tag { font-size:0.78em; padding:2px 8px; }
+
+/* Print */
+@media print {
+  .controls, input[type="file"], .hint { display:none !important; }
+  body { padding:0; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Upload JSON -->
+<input type="file" id="jsonFile" accept=".json">
+
+<!--
+  CONTROL PANEL
+  -------------
+  Lets you change layout, colors, spacing, and font size.
+  These controls do NOT change resume content.
+-->
+<div class="controls">
+  <div class="ctrl">
+    <label>Layout</label>
+    <select id="layoutSelect">
+      <option value="classic">Classic (ATS)</option>
+      <option value="two">Two Column</option>
+      <option value="timeline">Timeline</option>
+      <option value="compact">Compact (1-page)</option>
+    </select>
+  </div>
+
+  <div class="ctrl"><label>Primary</label><input type="color" value="#1a5490" data-var="--primary"></div>
+  <div class="ctrl"><label>Accent</label><input type="color" value="#2c3e50" data-var="--accent"></div>
+  <div class="ctrl"><label>Text</label><input type="color" value="#2c3e50" data-var="--text"></div>
+  <div class="ctrl"><label>SubText</label><input type="color" value="#7f8c8d" data-var="--muted"></div>
+  <div class="ctrl"><label>Background</label><input type="color" value="#ffffff" data-var="--bg"></div>
+  <div class="ctrl"><label>Line</label><input type="color" value="#c28585" data-var="--border"></div>
+
+  <div class="ctrl mini">
+    <div>
+      <label>Spacing</label>
+      <input type="range" min="1" max="2.2" value="1.25" id="lineHeight" step="0.05" data-var="--Linesp">
+    </div>
+    <div style="margin-top:18px;color:var(--accent);font-weight:700;"><span id="lhValue">1.25</span></div>
+  </div>
+
+  <div class="ctrl mini">
+    <div>
+      <label>Font size</label>
+      <input type="range" min="8.5" max="12" value="9.5" id="fontSize" step="0.1">
+    </div>
+    <div style="margin-top:18px;color:var(--accent);font-weight:700;"><span id="fsValue">9.5</span>pt</div>
+  </div>
+</div>
+
+<div class="hint" style="margin-bottom:10px;color:var(--muted);font-size:0.9em;">
+  Tip: Choose a layout, then press <b>Ctrl/Cmd + P</b> to print to PDF.
+</div>
+
+<!--
+  RESUME DISPLAY AREA
+  ------------------
+  JavaScript automatically fills this area
+  based on selected layout and uploaded JSON.
+-->
+<div id="resume"></div>
+
+<script id="defaultData" type="application/json">
+{
+  "personalInfo": {
+    "name": "Karthhic R Ponnalagi",
+    "title": "Automation Engineer",
+    "email": "karthhic@gmail.com",
+    "phone": "+358444935596",
+    "website": "karthhic.github.io",
+    "github": "karthhic",
+    "linkedin": "karthhic",
+    "profile": "Passionate automation engineer with experience in developing, installing, and commissioning automation solutions. Holds a permanent residence permit in Finland and is flexible with work-related travel."
+  },
+  "experience": [
+    {
+      "title": "R and D Engineer",
+      "company": "Atekniikka OY",
+      "location": "Helsinki, Finland",
+      "duration": "Apr 2024 - ",
+      "description": "SW development for siemens PLC, Planning and developing new features, "
+    },
+    {
+      "title": "Automation Engineer",
+      "company": "Beneq OY",
+      "location": "Espoo, Finland",
+      "duration": "Dec 2021 - Jan 2024",
+      "description": "SW development for PLC using structured text, Troubleshooting ALD tool, Configuring drives and other components in the tool, R and D for product development, Commissioning and Site support"
+    },
+    {
+      "title": "Product Developer",
+      "company": "Optolevel OY",
+      "location": "Nokia, Finland",
+      "duration": "Mar 2021 - Nov 2021",
+      "description": "Product development and prototyping, adding new features to existing products using assembly as the programming language, planning hardware changes with respect to new component availability. Using lean methodology in the development."
+    },
+    {
+      "title": "Automation Engineer [Fixed term]",
+      "company": "Quattrotec OY",
+      "location": "Valkeakoski, Finland",
+      "duration": "Nov 2020 - Jan 2021",
+      "description": "Installing PLC programming software [TIA Portal] and its updates, Creating and configuring the hardware configuration, Device naming and tag parameter generation using Excel, Site visit, Studying the old program from STEP7 and on its base creating PLC program for Hammermill module, Setting up Thin client."
+    },
+    {
+      "title": "IoT Developer",
+      "company": "Loopshore OY",
+      "location": "Tampere, Finland",
+      "duration": "Feb 2019 – Nov 2019",
+      "description": "Rapid prototyping for concept designs, IoT device development, 3D printing cases and mechanics for the IoT Devices."
+    },
+    {
+      "title": "Freelance Product Developer",
+      "company": "Freelancer",
+      "location": "Tampere, Finland",
+      "duration": "Jul 2018 – Feb 2019",
+      "description": "Consultant and IoT product developer through Kenzen OY developing automated multisense shower system for ISH expo 2019 messe Frankfurt."
+    },
+    {
+      "title": "Automation Engineer",
+      "company": "Wisematic OY",
+      "location": "Tampere, Finland",
+      "duration": "Jan 2018 – Jun 2018",
+      "description": "Configuring and programming Beckhoff PLC, sensors, 3D measurement cameras, drive units. Creating UI using Indusoft and LabVIEW. Making IOT based test platform for precision devices."
+    },
+    {
+      "title": "Automation Engineer Summer Trainee",
+      "company": "Cimcorp OY",
+      "location": "Ulvila, Finland",
+      "duration": "May 2016 - Aug 2016",
+      "description": "Creating and modifying PLC Programs, Created UI in Factory view, Experimenting usage of Raspberry pi in Industrial Environment."
+    },
+    {
+      "title": "Summer Trainee",
+      "company": "Cimcorp OY",
+      "location": "Ulvila, Finland",
+      "duration": "Jun 2015 - Aug 2015",
+      "description": "Assembling server, Configuring wireless access points and clients, updating firmware in switches and routers, updating Server firmware, Cloning user interfaces for backup."
+    },
+    {
+      "title": "Support Engineer",
+      "company": "Cimcorp OY",
+      "location": "Medak, India",
+      "duration": "Oct 2012 - Sep 2013",
+      "description": "Maintaining different tire production machines such as Conveyors, MBR 700 series Gantry Robots, Press Loaders, Orientation Machines, Destackers, HBW Cranes, Trimming machines, Universal KUKA robots."
+    },
+    {
+      "title": "Other work experience",
+      "company": "Random",
+      "location": "",
+      "duration": "",
+      "description": "Assistant to a scientist in an automated battery evaluation project by central electro-chemical research institute for 6 months. Senior system service engineer in a reputed computer sales and service shop for 2 years."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Master's Degree in Automation Engineering",
+      "institution": "Tampere University of Technology",
+      "location": "Finland",
+      "duration": "2014 – 2018",
+      "major": "Extended major in Factory Automation and Industrial Informatics.",
+      "thesis": "A redundant zigbee communication mechanism for avoiding collision in a monorail system"
+    },
+    {
+      "degree": "Bachelor's Degree in Electrical and Electronics",
+      "institution": "Anna University",
+      "location": "India",
+      "duration": "2006 – 2011",
+      "major": "Electrical and Electronics Engineering.",
+      "thesis": "A digital 3 phase converter for efficient speed regulation of motor."
+    },
+    {
+      "degree": "Diploma in Instrumentation and Control Engineering",
+      "institution": "Annamalai Polytechnic",
+      "location": "India",
+      "duration": "2002 – 2005",
+      "major": "Instrumentation and Control Engineering.",
+      "thesis": "PLC based vending machine."
+    }
+  ],
+  "skills": [
+    "Automation",
+    "Machine vision",
+    "WinCC",
+    "Commissioning",
+    "Studio 5000",
+    "Electrical diagrams",
+    "Beckhoff Twincat",
+    "CAD drawings",
+    "CATIA",
+    "Fusion 360",
+    "C",
+    "LMI 3D scanner",
+    "SQL",
+    "JavaScript",
+    "Python",
+    "Assembly",
+    "Bash/Shell",
+    "Project management",
+    "Linux",
+    "Leadership",
+    "Microsoft office 365 tools",
+    "Agile",
+    "Project planning",
+    "Documentation",
+    "PI diagram",
+    "Microcontroller",
+    "Product development",
+    "Autocad",
+    "Electronics"
+  ],
+  "languages": [
+    "English",
+    "Suomi",
+    "Tamil",
+    "Telugu",
+    "Kannada",
+    "Hindi"
+  ],
+  "projects": [
+    {
+      "name": "IOT based self-powered flow meter for COHEROS OY",
+      "from": "Demola",
+      "description": "It is a concept project to provide a remote self-sustaining flow measurement system using LoRaWAN wireless technology and hydro power generator. The concept prototype was built successfully and submitted",
+      "role": "Choosing components, Developing software, testing and demo"
+    },
+    {
+      "name": "Smart Home system",
+      "from": "Personal",
+      "description": "My personal project for a connected home involves multiple home appliances such as an IKEA table lamp, RGB light and heater respond to changes in room. The room itself is monitored for temperature, humidity and human presence. Upon finding an intruder, the system can also send MQTT messages to the registered mobile device.",
+      "role": "Everything but no documentation"
+    },
+    {
+      "name": "Laser Welding unit Design for VALMET Automotive",
+      "from": "University",
+      "description": "Designing a Laser welding robot for precision battery terminal welding. The whole system including conveyor design, robot motion was developed using CATIA.",
+      "role": "Designing the conveyor belt system model for transfering the battery"
+    },
+    {
+      "name": "Demo Factory",
+      "from": "University",
+      "description": "Programming of Festo Didactic MPS® 512-FMS Production line consisting of 7 Siemens PLC's and 1 Robot [Mitsubishi RV- 2AJ] Programmed using TIA portal and RT Toolbox",
+      "role": "Configuring and writing program for siemens PLC and programming the robot"
+    },
+    {
+      "name": "Multi-sense holistic shower system demo",
+      "from": "Kenzen OY",
+      "description": "Multi-sense system is a holistic experience of shower along with music, fragrance, RGB lighting. In the demo the controlling of the above said sensory triggering devices are synchronised with the demo video and run automatically non stop from 9 AM to 5 PM. The whole system is completely automated and running without any human intervention for a whole week.",
+      "role": "Designing the architecture of system operation and developing and programming the wireless microcontrollers and the server."
+    },
+    {
+      "name": "Crowd tracker for Tweaking the Tourism",
+      "from": "Demola Future Expert Training",
+      "description": "Project designed to improve the tourism by providing public area crowd and sanitizing information along with restaurant booking services. The crowd tracking is done by IoT devices planted in those public spaces.The main task is to approximate the count of people in a passive way and maintain privacy of people.",
+      "role": "Planning the device operation, prototyping and programming the device"
+    }
+  ],
+  "references": [
+    {
+      "name": "Prof. Andrei Lobov",
+      "title": "Professor",
+      "organization": "Norwegian University of Science and Technology",
+      "email": "andrei.lobov@ntnu.no",
+      "phone": "+4745913455"
+    },
+    {
+      "name": "Mr. Timo Prusi",
+      "title": "Automation Design Manager",
+      "organization": "Wisematic OY",
+      "email": "timo.prusi@wisematic.com",
+      "phone": "+358405234558"
+    },
+    {
+      "name": "Mr. Janne Raatikainen",
+      "title": "Project Engineer",
+      "organization": "Cimcorp OY",
+      "email": "janne@raatikainen.org",
+      "phone": "+358407385270"
+    },
+    {
+      "name": "Sylvain Moreau",
+      "title": "Engineering Manager",
+      "organization": "Beneq OY",
+      "email": "sylvain.moreau@beneq.com",
+      "phone": "+358503257248"
+    },
+    {
+      "name": "Janne Kekäläinen",
+      "title": "Product Manager",
+      "organization": "ASM",
+      "email": "janne.kekalainen@iki.fi",
+      "phone": ""
+    }
+  ],
+  "hobbies": [
+    "Archery",
+    "Cooking",
+    "DIY Electronics",
+    "Yoga",
+    "3D Modelling and Printing"
+  ],
+  "travel": [
+    "US B1/B2 Visa till 2033",
+    "China Special R type Visa till 2033",
+    "Drivers license A/B"
+  ],
+  "License": [
+    "Electrical Safety Card SFS 6002"
+  ]
+}
+</script>
+
+<script>
+/*
+  JAVASCRIPT SECTION
+  ------------------
+  This part reads your JSON file and builds
+  the resume layout automatically.
+
+  If you are not a programmer, you usually
+  do NOT need to change anything here.
+*/
+
+let currentData = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const defaultJson = document.getElementById("defaultData");
+if (defaultJson) {
+  currentData = JSON.parse(defaultJson.textContent);
+  render(currentData);
+}
+  // Theme colors
+  document.querySelectorAll('input[type="color"]').forEach(input => {
+    input.addEventListener("input", () => {
+      document.documentElement.style.setProperty(input.dataset.var, input.value);
+    });
+  });
+
+  // Spacing slider
+  const lineHeight = document.getElementById("lineHeight");
+  const lhValue = document.getElementById("lhValue");
+  lineHeight.addEventListener("input", () => {
+    document.documentElement.style.setProperty("--Linesp", lineHeight.value);
+    lhValue.textContent = lineHeight.value;
+  });
+
+  // Font size slider
+  const fontSize = document.getElementById("fontSize");
+  const fsValue = document.getElementById("fsValue");
+  fontSize.addEventListener("input", () => {
+    const v = fontSize.value;
+    document.documentElement.style.setProperty("--FntSz", v + "pt");
+    fsValue.textContent = v;
+  });
+
+  // Layout selector
+  const layoutSelect = document.getElementById("layoutSelect");
+  layoutSelect.addEventListener("change", () => {
+    setLayout(layoutSelect.value);
+    if (currentData) render(currentData);
+  });
+
+  // File upload
+  document.getElementById("jsonFile").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      currentData = JSON.parse(reader.result);
+      render(currentData);
+    };
+    reader.readAsText(file);
+  });
+
+  // Default layout
+  setLayout(layoutSelect.value);
+});
+
+// Switch between layouts by changing CSS class on <body>
+function setLayout(name) {
+  document.body.classList.remove("layout-classic","layout-two","layout-timeline","layout-compact");
+  document.body.classList.add("layout-" + name);
+}
+
+// Helpers
+const safe = (v) => (v === undefined || v === null) ? "" : String(v);
+const joinNonEmpty = (arr, sep=" · ") => arr.map(safe).map(s=>s.trim()).filter(Boolean).join(sep);
+
+function splitToBullets(text) {
+  const t = safe(text).trim();
+  if (!t) return [];
+  // Split by common separators, but keep short phrases.
+  return t.split(/\s*[,;·•]\s*/).map(x => x.trim()).filter(Boolean);
+}
+
+function headerBlock(p) {
+  return `
+    <header>
+      <h1>${safe(p.name)}</h1>
+      <div class="subtitle">${safe(p.title)}</div>
+      <div class="contact">
+        ${p.email ? `<span>📧 <a href="mailto:${safe(p.email)}">${safe(p.email)}</a></span>` : ""}
+        ${p.phone ? `<span>📱 ${safe(p.phone)}</span>` : ""}
+        ${p.linkedin ? `<span>💼 <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/${safe(p.linkedin)}">LinkedIn</a></span>` : ""}
+        ${p.website ? `<span>🌐 <a target="_blank" rel="noopener noreferrer" href="${safe(p.website)}">${safe(p.website)}</a></span>` : ""}
+        ${p.github ? `<span>🔧 <a target="_blank" rel="noopener noreferrer" href="https://github.com/${safe(p.github)}">github.com/${safe(p.github)}</a></span>` : ""}
+      </div>
+    </header>
+  `;
+}
+
+function section(title, inner) {
+  if (!inner || !inner.trim()) return "";
+  return `<div class="section"><h2>${title}</h2>${inner}</div>`;
+}
+
+function renderExperienceList(d) {
+  const ex = (d.experience || []).map(e => `
+    <div class="item">
+      <div class="item-header">
+        <div>
+          <div class="title">${safe(e.title)}</div>
+          <div class="company">${joinNonEmpty([e.company, e.location], " — ")}</div>
+        </div>
+        <div class="duration">${safe(e.duration)}</div>
+      </div>
+      <div class="desc">${safe(e.description)}</div>
+    </div>
+  `).join("");
+  return ex;
+}
+
+function renderEducationList(d) {
+  const ed = (d.education || []).map(e => `
+    <div class="item">
+      <div class="item-header">
+        <div>
+          <div class="title">${safe(e.degree)}</div>
+          <div class="company">${joinNonEmpty([e.institution, e.location], " — ")}</div>
+        </div>
+        <div class="duration">${safe(e.duration)}</div>
+      </div>
+      ${e.major ? `<div class="desc">${safe(e.major)}</div>` : ""}
+      ${e.thesis ? `<div class="desc">${safe(e.thesis)}</div>` : ""}
+    </div>
+  `).join("");
+  return ed;
+}
+
+function renderTags(arr) {
+  const a = (arr || []).map(s => safe(s).trim()).filter(Boolean);
+  if (!a.length) return "";
+  return `<div class="tags">${a.map(s => `<span class="tag">${s}</span>`).join("")}</div>`;
+}
+
+function renderProjects(d) {
+  const pr = (d.projects || []).map(p => `
+    <div class="item">
+      <div class="item-header">
+        <div>
+          <div class="title">${safe(p.name)}</div>
+          <div class="company">${safe(p.from)}</div>
+        </div>
+      </div>
+      ${p.role ? `<div class="desc"><b>Role:</b> ${safe(p.role)}</div>` : ""}
+      ${p.description ? `<div class="desc">${safe(p.description)}</div>` : ""}
+    </div>
+  `).join("");
+  return pr;
+}
+
+/* =========================
+   LAYOUT RENDERERS
+   ========================= */
+
+// CLASSIC LAYOUT (Single column, ATS friendly)
+function renderClassic(d) {
+  const p = d.personalInfo || {};
+  return `
+    ${headerBlock(p)}
+    ${section("Profile", `<p>${safe(p.profile)}</p>`)}
+    ${section("Experience", renderExperienceList(d))}
+    ${section("Education", renderEducationList(d))}
+    ${section("Projects", renderProjects(d))}
+    ${section("Skills", renderTags(d.skills))}
+    ${section("Languages", renderTags(d.languages))}
+    ${section("Hobbies", renderTags(d.hobbies))}
+    ${section("Travel", renderTags(d.travel))}
+    ${section("License", renderTags(d.License))}
+  `;
+}
+
+// TWO COLUMN LAYOUT (Sidebar + main content)
+function renderTwoColumn(d) {
+  const p = d.personalInfo || {};
+  const left = `
+    ${section("Contact", `
+      <div class="desc">
+        ${p.email ? `📧 <a href="mailto:${safe(p.email)}">${safe(p.email)}</a><br>` : ""}
+        ${p.phone ? `📱 ${safe(p.phone)}<br>` : ""}
+        ${p.website ? `🌐 <a target="_blank" rel="noopener noreferrer" href="${safe(p.website)}">${safe(p.website)}</a><br>` : ""}
+        ${p.linkedin ? `💼 <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/${safe(p.linkedin)}">linkedin.com/in/${safe(p.linkedin)}</a><br>` : ""}
+        ${p.github ? `🔧 <a target="_blank" rel="noopener noreferrer" href="https://github.com/${safe(p.github)}">github.com/${safe(p.github)}</a>` : ""}
+      </div>
+    `)}
+    ${section("Skills", renderTags(d.skills))}
+    ${section("Languages", renderTags(d.languages))}
+    ${section("Education", renderEducationList(d))}
+    ${section("Hobbies", renderTags(d.hobbies))}
+    ${section("Travel", renderTags(d.travel))}
+    ${section("License", renderTags(d.License))}
+  `;
+
+  const right = `
+    ${section("Profile", `<p>${safe(p.profile)}</p>`)}
+    ${section("Experience", renderExperienceList(d))}
+    ${section("Projects", renderProjects(d))}
+  `;
+
+  return `
+    <div class="nameblock">
+      <h1>${safe(p.name)}</h1>
+      <div class="subtitle">${safe(p.title)}</div>
+      <div class="contact">
+        ${joinNonEmpty([p.email, p.phone, p.website], " · ")}
+      </div>
+    </div>
+    <div class="two">
+      <aside class="left">${left}</aside>
+      <main class="right">${right}</main>
+    </div>
+  `;
+}
+
+// TIMELINE LAYOUT (Experience shown as a timeline)
+function renderTimeline(d) {
+  const p = d.personalInfo || {};
+  const events = (d.experience || []).map(e => `
+    <div class="event">
+      <div class="when">${safe(e.duration)}</div>
+      <h3>${safe(e.title)} — ${safe(e.company)}</h3>
+      <div class="desc">${joinNonEmpty([e.location], "")}</div>
+      <div class="desc">${safe(e.description)}</div>
+    </div>
+  `).join("");
+
+  return `
+    ${headerBlock(p)}
+    ${section("Profile", `<p>${safe(p.profile)}</p>`)}
+    ${section("Experience", `<div class="timeline">${events}</div>`)}
+    ${section("Projects", renderProjects(d))}
+    ${section("Skills", renderTags(d.skills))}
+    ${section("Education", renderEducationList(d))}
+    ${section("Languages", renderTags(d.languages))}
+    ${section("License", renderTags(d.License))}
+  `;
+}
+
+// COMPACT LAYOUT (Designed to fit into one page)
+function renderCompact(d) {
+  const p = d.personalInfo || {};
+  const compactExp = (d.experience || []).map(e => {
+    const bullets = splitToBullets(e.description);
+    const bulletHtml = bullets.length ? `<ul>${bullets.map(b => `<li>${b}</li>`).join("")}</ul>` : "";
+    return `
+      <div class="item">
+        <div class="item-header">
+          <div>
+            <div class="title">${safe(e.title)} — ${safe(e.company)}</div>
+            <div class="company">${joinNonEmpty([e.location], "")}</div>
+          </div>
+          <div class="duration">${safe(e.duration)}</div>
+        </div>
+        <div class="desc">${bulletHtml}</div>
+      </div>
+    `;
+  }).join("");
+
+  const skillsInline = (d.skills || []).map(s => safe(s).trim()).filter(Boolean).join(", ");
+  const langsInline = (d.languages || []).map(s => safe(s).trim()).filter(Boolean).join(", ");
+  const LicenseInline = (d.License || []).map(s => safe(s).trim()).filter(Boolean).join(", ");
+
+  return `
+    <div class="compact">
+      <header>
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div>
+            <h1>${safe(p.name)}</h1>
+            <div class="subtitle">${safe(p.title)}</div>
+          </div>
+          <div class="contact" style="justify-content:flex-end;">
+            ${p.email ? `<span><a href="mailto:${safe(p.email)}">${safe(p.email)}</a></span>` : ""}
+            ${p.phone ? `<span>${safe(p.phone)}</span>` : ""}
+            ${p.linkedin ? `<span><a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/${safe(p.linkedin)}">LinkedIn</a></span>` : ""}
+            ${p.website ? `<span><a target="_blank" rel="noopener noreferrer" href="${safe(p.website)}">${safe(p.website)}</a></span>` : ""}
+          </div>
+        </div>
+      </header>
+
+      ${section("Profile", `<p>${safe(p.profile)}</p>`)}
+      ${section("Experience", compactExp)}
+      ${section("Skills", `<div class="desc">${safe(skillsInline)}</div>`)}
+      ${section("Education", renderEducationList(d))}
+      ${section("Languages", `<div class="desc">${safe(langsInline)}</div>`)}
+      ${section("Projects (selected)", (d.projects||[]).slice(0,3).map(pj => `
+        <div class="item">
+          <div class="title">${safe(pj.name)}</div>
+          <div class="desc">${safe(pj.description)}</div>
+        </div>
+      `).join(""))}
+      ${section("License", `<div class="desc">${safe(LicenseInline)}</div>`)}
+    </div>
+  `;
+}
+
+// MAIN RENDER FUNCTION
+// Chooses which layout renderer to call
+function render(d) {
+  const layout = (document.getElementById("layoutSelect") || {}).value || "classic";
+  const root = document.getElementById("resume");
+
+  let out = "";
+  if (layout === "classic") out = renderClassic(d);
+  else if (layout === "two") out = renderTwoColumn(d);
+  else if (layout === "timeline") out = renderTimeline(d);
+  else if (layout === "compact") out = renderCompact(d);
+  else out = renderClassic(d);
+
+  root.innerHTML = out;
+}
+</script>
+
+</body>
+</html>
