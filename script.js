@@ -128,7 +128,7 @@ function renderPortfolio(data) {
           <div class="photo-glow"></div>
           <div class="photo-ring"></div>
           <div class="photo-mask"></div>
-          <div class="photo-inner"><span style="font-size:90px">👤</span></div>
+          <div class="photo-inner"><img src="me.png" alt="My Photo"></div>
         </div>
         <div class="stats-card">
           <div class="stat"><span class="stat-n">${yearsExp}</span><span class="stat-l">Years Exp.</span></div>
