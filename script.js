@@ -245,7 +245,7 @@ function renderPortfolio(data) {
         </div>
       </div>
     </section>
-
+<!--
     <section id="references" class="sec sec-alt">
       <div class="sec-inner">
         <div class="sec-lbl reveal visible">Recommendations</div>
@@ -264,7 +264,7 @@ function renderPortfolio(data) {
         </div>
       </div>
     </section>
-
+-->
     <section id="contact" class="sec">
       <div class="sec-inner">
         <div class="sec-lbl reveal visible">Contact</div>
