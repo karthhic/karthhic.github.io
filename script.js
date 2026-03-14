@@ -155,17 +155,9 @@ function renderPortfolio(data) {
           <div class="info-list reveal rd2 visible">
             ${buildInfoRow(ICONS.email, 'Email', `<a href="mailto:${escapeHtml(personal.email || '')}">${escapeHtml(personal.email || '')}</a>`)}
             <!--${buildInfoRow(ICONS.phone, 'Phone', escapeHtml(personal.phone || ''))}-->
-            ${buildInfoRow(
-  ICONS.phone,
-  'Phone',
-  `<a href="tel:${escapeHtml(personal.phone || '')}">${escapeHtml(personal.phone || '')}</a>`
-)}
+            ${buildInfoRow(ICONS.phone,'Phone',`<a href="tel:${escapeHtml(personal.phone || '')}">${escapeHtml(personal.phone || '')}</a>`)}
             <!--${location ? buildInfoRow(ICONS.location, 'Location', escapeHtml(location)) : ''}-->
-            ${location ? buildInfoRow(
-  ICONS.location,
-  'Location',
-  `<a href="https://www.google.com/maps/search/${encodeURIComponent(location)}" target="_blank" rel="noreferrer">${escapeHtml(location)}</a>`
-) : ''}
+            ${location ? buildInfoRow(ICONS.location,'Location',`<a href="https://www.google.com/maps/search/${encodeURIComponent(location)}" target="_blank" rel="noreferrer">${escapeHtml(location)}</a>`) : ''}
             ${buildInfoRow(ICONS.website, 'Website', `<a href="${siteUrl}" target="_blank" rel="noreferrer">${escapeHtml(personal.website || '')}</a>`)}
             ${buildInfoRow(ICONS.linkedin, 'LinkedIn', `<a href="${linkedinUrl}" target="_blank" rel="noreferrer">linkedin.com/in/${escapeHtml(personal.linkedin || '')}</a>`)}
             ${buildInfoRow(ICONS.github, 'GitHub', `<a href="${githubUrl}" target="_blank" rel="noreferrer">github.com/${escapeHtml(personal.github || '')}</a>`)}
