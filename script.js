@@ -106,7 +106,7 @@ function renderPortfolio(data) {
 
     <section id="hero">
       <div class="hero-left">
-        <div class="hero-badge"><span class="hdot"></span>Available for Opportunities</div>
+        <div class="hero-badge"><span class="hdot"></span>Automation Professional</div>
         <h1 class="hero-title">
           <span class="line hn">${escapeHtml(firstName(displayName))}</span>
           <span class="line hr1">${escapeHtml(personal.title || '')}</span>
