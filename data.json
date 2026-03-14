@@ -210,40 +210,6 @@
     "Electrical Safety Card SFS 6002"
   ],
   "references": [
-    {
-      "name": "Prof. Andrei Lobov",
-      "title": "Professor",
-      "organization": "Norwegian University of Science and Technology",
-      "email": "andrei.lobov@ntnu.no",
-      "phone": "+4745913455"
-    },
-    {
-      "name": "Mr. Timo Prusi",
-      "title": "Automation Design Manager",
-      "organization": "Wisematic OY",
-      "email": "timo.prusi@wisematic.com",
-      "phone": "+358405234558"
-    },
-    {
-      "name": "Mr. Janne Raatikainen",
-      "title": "Project Engineer",
-      "organization": "Cimcorp OY",
-      "email": "janne@raatikainen.org",
-      "phone": "+358407385270"
-    },
-    {
-      "name": "Sylvain Moreau",
-      "title": "Engineering Manager",
-      "organization": "Beneq OY",
-      "email": "sylvain.moreau@beneq.com",
-      "phone": "+358503257248"
-    },
-    {
-      "name": "Janne Kekäläinen",
-      "title": "Product Manager",
-      "organization": "ASM",
-      "email": "janne.kekalainen@iki.fi",
-      "phone": ""
-    }
+
   ]
 }
