@@ -1,0 +1,249 @@
+{
+  "personalInfo": {
+    "name": "Karthhic R Ponnalagi",
+    "title": "Senior Automation Engineer",
+    "email": "karthhic@gmail.com",
+    "phone": "+358444935596",
+    "website": "karthhic.github.io",
+    "github": "karthhic",
+    "linkedin": "karthhic",
+    "profile": "Passionate automation engineer with experience in developing, installing, and commissioning automation solutions. Holds a permanent residence permit in Finland and is flexible with work-related travel."
+  },
+  "experience": [
+    {
+      "title": "R and D Engineer",
+      "company": "Atekniikka OY",
+      "location": "Helsinki, Finland",
+      "duration": "Apr 2024 - Present",
+      "description": "SW development for Siemens PLC, Planning and developing new features."
+    },
+    {
+      "title": "Automation Engineer",
+      "company": "Beneq OY",
+      "location": "Espoo, Finland",
+      "duration": "Dec 2021 - Jan 2024",
+      "description": "SW development for PLC using structured text, Troubleshooting ALD tool, Configuring drives and other components in the tool, R and D for product development, Commissioning and Site support."
+    },
+    {
+      "title": "Product Developer",
+      "company": "Optolevel OY",
+      "location": "Nokia, Finland",
+      "duration": "Mar 2021 - Nov 2021",
+      "description": "Product development and prototyping, adding new features using assembly as the programming language, planning hardware changes, using lean methodology."
+    },
+    {
+      "title": "Automation Engineer [Fixed term]",
+      "company": "Quattrotec OY",
+      "location": "Valkeakoski, Finland",
+      "duration": "Nov 2020 - Jan 2021",
+      "description": "Installing TIA Portal and updates, creating hardware configuration, Device naming and tag parameter generation using Excel, creating PLC program for Hammermill module, Setting up Thin client."
+    },
+    {
+      "title": "IoT Developer",
+      "company": "Loopshore OY",
+      "location": "Tampere, Finland",
+      "duration": "Feb 2019 – Nov 2019",
+      "description": "Rapid prototyping for concept designs, IoT device development, 3D printing cases and mechanics for IoT Devices."
+    },
+    {
+      "title": "Freelance Product Developer",
+      "company": "Kenzen OY",
+      "location": "Tampere, Finland",
+      "duration": "Jul 2018 – Feb 2019",
+      "description": "Consultant and IoT product developer developing automated multisense shower system for ISH expo 2019 messe Frankfurt."
+    },
+    {
+      "title": "Automation Engineer",
+      "company": "Wisematic OY",
+      "location": "Tampere, Finland",
+      "duration": "Jan 2018 – Jun 2018",
+      "description": "Configuring and programming Beckhoff PLC, sensors, 3D measurement cameras, drive units. Creating UI using Indusoft and LabVIEW."
+    },
+    {
+      "title": "Automation Engineer (Summer Trainee)",
+      "company": "Cimcorp OY",
+      "location": "Ulvila, Finland",
+      "duration": "May 2016 - Aug 2016",
+      "description": "Creating and modifying PLC Programs, Created UI in Factory View, Experimenting usage of Raspberry Pi in Industrial Environment."
+    },
+    {
+      "title": "Summer Trainee",
+      "company": "Cimcorp OY",
+      "location": "Ulvila, Finland",
+      "duration": "Jun 2015 - Aug 2015",
+      "description": "Assembling servers, configuring wireless access points, updating firmware in switches/routers, cloning user interfaces for backup."
+    },
+    {
+      "title": "Support Engineer",
+      "company": "Cimcorp OY",
+      "location": "Medak, India",
+      "duration": "Oct 2012 - Sep 2013",
+      "description": "Maintaining tire production machines: Conveyors, MBR 700 Gantry Robots, Press Loaders, HBW Cranes, Universal KUKA robots."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Master's in Automation Engineering",
+      "institution": "Tampere University of Technology",
+      "location": "Finland",
+      "duration": "2014 – 2018",
+      "major": "Extended major in Factory Automation and Industrial Informatics.",
+      "thesis": "A redundant zigbee communication mechanism for avoiding collision in a monorail system"
+    },
+    {
+      "degree": "Bachelor's in Electrical & Electronics",
+      "institution": "Anna University",
+      "location": "India",
+      "duration": "2006 – 2011",
+      "major": "Electrical and Electronics Engineering.",
+      "thesis": "A digital 3 phase converter for efficient speed regulation of motor."
+    },
+    {
+      "degree": "Diploma in Instrumentation & Control",
+      "institution": "Annamalai Polytechnic",
+      "location": "India",
+      "duration": "2002 – 2005",
+      "major": "Instrumentation and Control Engineering.",
+      "thesis": "PLC based vending machine."
+    }
+  ],
+  "skillGroups": {
+    "Industrial & Automation": [
+      "Automation",
+      "Beckhoff TwinCAT",
+      "Studio 5000",
+      "WinCC",
+      "TIA Portal",
+      "Commissioning",
+      "Machine vision",
+      "LMI 3D scanner",
+      "PI diagram"
+    ],
+    "Programming": [
+      "C",
+      "Python",
+      "JavaScript",
+      "Assembly",
+      "Bash/Shell",
+      "SQL"
+    ],
+    "Design & CAD": [
+      "CAD drawings",
+      "CATIA",
+      "Fusion 360",
+      "Autocad",
+      "3D Modelling",
+      "Electrical diagrams"
+    ],
+    "Tools & Methods": [
+      "Project management",
+      "Agile",
+      "Project planning",
+      "Documentation",
+      "Linux",
+      "Microcontroller",
+      "Product development",
+      "Microsoft 365",
+      "Electronics",
+      "Leadership"
+    ]
+  },
+  "projects": [
+    {
+      "name": "IoT Self-Powered Flow Meter",
+      "from": "Demola / COHEROS OY",
+      "description": "Remote self-sustaining flow measurement system using LoRaWAN wireless technology and a hydro power generator. Prototype successfully built and submitted.",
+      "role": "Choosing components, developing software, testing and demo"
+    },
+    {
+      "name": "Smart Home System",
+      "from": "Personal",
+      "description": "Connected home — IKEA lamp, RGB lights and heater respond to room conditions. Monitors temperature, humidity, human presence and sends MQTT alerts to mobile on intrusion.",
+      "role": "Full stack hardware + software development"
+    },
+    {
+      "name": "Laser Welding Unit Design",
+      "from": "University / VALMET Automotive",
+      "description": "Laser welding robot for precision battery terminal welding. Full system including conveyor design and robot motion developed in CATIA.",
+      "role": "Designing the conveyor belt system model for battery transfer"
+    },
+    {
+      "name": "Demo Factory (Festo MPS 512-FMS)",
+      "from": "University",
+      "description": "Programming Festo Didactic MPS® 512-FMS Production line with 7 Siemens PLCs and 1 Mitsubishi RV-2AJ Robot using TIA Portal and RT Toolbox.",
+      "role": "Configuring Siemens PLC programs and programming the robot"
+    },
+    {
+      "name": "Multi-Sense Holistic Shower System",
+      "from": "Kenzen OY / ISH Frankfurt",
+      "description": "Holistic shower experience with music, fragrance, RGB lighting — synchronised and fully automated running 9AM–5PM for a full week with zero human intervention.",
+      "role": "System architecture, wireless microcontroller development and server programming"
+    },
+    {
+      "name": "Crowd Tracker for Tourism",
+      "from": "Demola Future Expert Training",
+      "description": "Improving tourism by tracking crowd and sanitizing info in public areas. IoT devices passively approximate people count while maintaining privacy.",
+      "role": "Planning device operation, prototyping and programming"
+    }
+  ],
+  "hobbies": [
+    "Archery",
+    "Cooking",
+    "DIY Electronics",
+    "Yoga",
+    "3D Modelling and Printing"
+  ],
+  "languages": [
+    "English",
+    "Suomi (Finnish)",
+    "Tamil",
+    "Telugu",
+    "Kannada",
+    "Hindi"
+  ],
+  "travel": [
+    "US B1/B2 Visa till 2033",
+    "China Special R type Visa till 2033",
+    "Driver's License A/B"
+  ],
+  "licenses": [
+    "Electrical Safety Card SFS 6002"
+  ],
+  "references": [
+    {
+      "name": "Prof. Andrei Lobov",
+      "title": "Professor",
+      "organization": "Norwegian University of Science and Technology",
+      "email": "andrei.lobov@ntnu.no",
+      "phone": "+4745913455"
+    },
+    {
+      "name": "Mr. Timo Prusi",
+      "title": "Automation Design Manager",
+      "organization": "Wisematic OY",
+      "email": "timo.prusi@wisematic.com",
+      "phone": "+358405234558"
+    },
+    {
+      "name": "Mr. Janne Raatikainen",
+      "title": "Project Engineer",
+      "organization": "Cimcorp OY",
+      "email": "janne@raatikainen.org",
+      "phone": "+358407385270"
+    },
+    {
+      "name": "Sylvain Moreau",
+      "title": "Engineering Manager",
+      "organization": "Beneq OY",
+      "email": "sylvain.moreau@beneq.com",
+      "phone": "+358503257248"
+    },
+    {
+      "name": "Janne Kekäläinen",
+      "title": "Product Manager",
+      "organization": "ASM",
+      "email": "janne.kekalainen@iki.fi",
+      "phone": ""
+    }
+  ]
+}

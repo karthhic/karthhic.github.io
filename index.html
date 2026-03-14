@@ -1,141 +1,27 @@
-<!-- DOCTYPE -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Karthhic's Webpage</title>
-  <meta charset="utf-8">
-  <!-- Viewport Meta Tag -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="bootstrap.min.css">
-
-  <style>
-  @import url('https://fonts.googleapis.com/css?family=BioRhyme');
-  @import url('https://fonts.googleapis.com/css?family=Baloo');
-  @import url('https://fonts.googleapis.com/css?family=Titillium+Web');
-div.container {
-    width: 100%;
-    border: 1px solid gray;
-}
-
-header, footer {
-    padding: 1em;
-    color: #333;
-    clear: left;
-	font-size: x-large;
-	font-family: Titillium+Web;
-    text-align: center;
-}
-
-html, body {
-    height: 100%;
-}
-	  
-body end{
-color: #333;
-position: fixed;
-bottom: 5px;
-right: 0px;
-}
-
-body {
-  background: #333;
-  color: #fff;
-  background-image:url(https://lh3.googleusercontent.com/TiBv58-xQFpX8qhIKneLzynt7PxlZey4ZD0SlnIX04FZ10Dkh71uOFmprHDVIzRmeJshEyE4vgt2IptFJ37jAg2a822pniyWfPeDWSTArqMVF9VGgDIK4O4n1sQxVfXMoqIsSS7ynVAHU4JahEoTZgXkyjB9kY3RQRwmCAdkb-Gy05WXHjfCmT_f8SUQ5z3qkDY4JI4tRqwQr5a8-klgwIUyeBs8eTptK-nEwE9ZYnDvGjFR9A0mZS4lG3DG4Grdx6mj6kNVpa5lnLUGlJu4KYv7HlQjNCPTkuimU_9vtfDVjlp0UlvFRlC7ZEI7ng226zbD-W2LQ3dHEggVhw0qAbCdn7MlpdYylN2vSTZylskxblMRRAUt2LG2zNlAl5bepDdnDzBuF3seF1wHkwlqb_CCi43CZ_f31I_WpO-5tUUW3Jvg8udqZ6hj9Q5bY15-iVFYzDglTccrLe43MEVJ9B8fxfd13COYTWLzO7z9ArYohoo0P-2xghDRuDv_eDs8sAARASzL8fVdXdBAvVLM-ERH7G6Cfr5XidQaApeBUsr7Z3cU4__PWjKwggOPb-h2s-7cPNziKY0uDT_tgEgsPH2wHf22apgXx2sYm7qvvg67baVzmZspFt0I_cU-63byY8fzwM_cRM_VtVRj0BKbU_CXvOhHODcgl4UpOoZrajI=w1403-h789-no);
-  background-repeat:no-repeat;
-  background-size:cover;
-}
-
-type {
-  color: #333;
-  font-family: BioRhyme;
-  display: flex;
-  justify-content: center;
-}
-
-article {
-    margin-left: 170px;
-    border-left: 1px solid gray;
-	background-image:url(http://www.ianbarnard.co.uk/wp-content/uploads/2013/03/Blueprint_Background.jpg);
-    padding: 1em;
-    overflow: hidden;
-}
-
-.typewriter h1 {
-  overflow: hidden; /* Ensures the content is not revealed until the animation */
-  border-right: .15em solid orange; /* The typwriter cursor */
-  white-space: nowrap; /* Keeps the content on a single line */
-  margin: 0 auto; /* Gives that scrolling effect as the typing happens */
-  letter-spacing: .05em; /* Adjust as needed */
-  animation: 
-    typing 6.5s steps(40, end),
-    blink-caret .75s step-end infinite;
-	
-}
-
-/* The typing effect */
-@keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
-}
-
-/* The typewriter cursor effect */
-@keyframes blink-caret {
-  from, to { border-color: transparent }
-  50% { border-color: white; }
-}
-
-
-</style>
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="bg-orb"></div>
+  <div class="bg-grid"></div>
 
+  <div id="app">
+    <div class="loading-shell">
+      <div class="loading-card">
+        <h2>Loading portfolio</h2>
+        <p>Reading the latest content from <code>data.json</code>.</p>
+      </div>
+    </div>
+  </div>
 
-<nav class="navbar navbar-default">
-	<div class="container-fluid">
-	
-		<!-- Brand/logo -->
-		<div class="navbar-header">
-			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#example-1" aria-expanded="false" aria-controls="example-1">
-				<span class="sr-only">Toggle navigation</span>
-				<span class="icon-bar"></span>
-				<span class="icon-bar"></span>
-				<span class="icon-bar"></span>
-			</button>
-			<a class="navbar-brand" href="index.html">KARTHHIC R PONNALAGI</a>
-		</div>
-		
-		<!-- Collapsible Navbar -->
-		<div class="collapse navbar-collapse" id="example-1">
-			<ul class="nav navbar-nav">
-				<li><a href="portfolio.html">PORTFOLIO</a></li>
-				<li><a href="project.html">PROJECTS</a></li>
-				<li><a href="resume.html">RESUME</a></li>
-				<li><a href="Contact.html">CONTACT</a></li>
-			</ul>
-		</div>
-	
-	</div>
-</nav>
-
-<header>
-   <p style="color:#333;font-size:72px;font-family:Titillium Web;">KARTHHIC RAMACHANDRAN PONNALAGI</p>
-</header>
-</br></br>
-<type>
-<div class="typewriter"><center>
-  <h1>Automation Engineer, IoT/Digitalisation Specialist.</h1></center>
-</div>
-</type>
-</br></br></br></br></br></br>
-<center><a href="portfolio.html" class="btn btn-lg btn-default">Learn more</a></center>
-<end><p style="color:#fff;font-size:20px;font-family:'Open Sans Condensed';">PC: Shriram Nandakumar</p></end>
-
-  <!-- JavaScript: placed at the end of the document so the pages load faster -->
-  <!-- JQuery -->
-  <script src="jquery.min.js"></script>
-  <!-- Bootstrap JS -->
-  <script src="bootstrap.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
