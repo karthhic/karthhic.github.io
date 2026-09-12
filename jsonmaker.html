@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidate Profile Form</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --panel:#ffffff;
+    --border:#dde1e6;
+    --text:#1c2128;
+    --muted:#5b6472;
+    --accent:#2f5fd9;
+    --accent-hover:#2449ad;
+    --danger:#c4402d;
+    --danger-hover:#a02f20;
+    --chip-bg:#eef1fb;
+    --chip-text:#28407a;
+    --input-bg:#ffffff;
+    --shadow: 0 1px 2px rgba(20,25,35,0.06), 0 1px 1px rgba(20,25,35,0.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14161a;
+      --panel:#1c1f26;
+      --border:#2c313b;
+      --text:#e7e9ee;
+      --muted:#9aa2b1;
+      --accent:#5b82ef;
+      --accent-hover:#6f92f4;
+      --danger:#e0685a;
+      --danger-hover:#e88378;
+      --chip-bg:#232a3d;
+      --chip-text:#b7c6f7;
+      --input-bg:#12141a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding-block:32px;
+  }
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding-inline:20px;
+  }
+  header.page-head{
+    margin-bottom:24px;
+  }
+  header.page-head h1{
+    font-size:1.6rem;
+    margin:0 0 6px;
+  }
+  header.page-head p{
+    color:var(--muted);
+    margin:0;
+    line-height:1.5;
+    font-size:0.95rem;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+    padding:20px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-size:1.05rem;
+    margin:0 0 4px;
+  }
+  .card .card-sub{
+    color:var(--muted);
+    font-size:0.85rem;
+    margin:0 0 16px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+  }
+  .grid.cols-3{grid-template-columns:repeat(3,1fr);}
+  @media (max-width:560px){
+    .grid, .grid.cols-3{grid-template-columns:1fr;}
+  }
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field.span-2{grid-column:span 2;}
+  @media (max-width:560px){.field.span-2{grid-column:span 1;}}
+  label{font-size:0.82rem;font-weight:600;color:var(--muted);}
+  label .opt{font-weight:400;text-transform:none;}
+  input[type=text], input[type=number], input[type=url], input[type=email], select, textarea{
+    background:var(--input-bg);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:7px;
+    padding:9px 10px;
+    font-size:0.92rem;
+    font-family:inherit;
+    width:100%;
+  }
+  textarea{resize:vertical;min-height:70px;line-height:1.4;}
+  input:focus, select:focus, textarea:focus{
+    outline:2px solid var(--accent);
+    outline-offset:0;
+  }
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding-top:4px;
+  }
+  .checkbox-row input{width:16px;height:16px;}
+  .checkbox-row label{font-weight:500;color:var(--text);font-size:0.9rem;}
+
+  /* tag input */
+  .tag-input{
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:7px;
+    background:var(--input-bg);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+  }
+  .tag-input .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    background:var(--chip-bg);
+    color:var(--chip-text);
+    border-radius:999px;
+    padding:4px 6px 4px 10px;
+    font-size:0.82rem;
+    line-height:1;
+  }
+  .chip-remove{
+    background:none;
+    border:none;
+    color:inherit;
+    cursor:pointer;
+    font-size:1rem;
+    line-height:1;
+    padding:2px 4px;
+    border-radius:50%;
+  }
+  .chip-remove:hover{background:rgba(0,0,0,0.1);}
+  .tag-entry{
+    border:none;
+    outline:none;
+    background:transparent;
+    flex:1;
+    min-width:140px;
+    font-size:0.9rem;
+    padding:4px;
+    color:var(--text);
+  }
+  .tag-hint{color:var(--muted);font-size:0.76rem;margin-top:3px;}
+
+  /* repeatable blocks */
+  .block{
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px;
+    margin-bottom:14px;
+    position:relative;
+    background:color-mix(in srgb, var(--panel) 96%, var(--accent) 4%);
+  }
+  .block-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .block-head span{font-weight:600;font-size:0.85rem;color:var(--muted);}
+  .category-name-input{
+    flex:1;
+    font-weight:600;
+    font-size:0.95rem;
+    border:none;
+    border-bottom:1px solid var(--border);
+    border-radius:0;
+    background:transparent;
+    padding:4px 2px;
+  }
+  .category-name-input:focus{outline:none;border-bottom-color:var(--accent);}
+  .btn{
+    border:1px solid var(--border);
+    background:var(--panel);
+    color:var(--text);
+    padding:8px 14px;
+    border-radius:7px;
+    font-size:0.88rem;
+    cursor:pointer;
+    font-weight:500;
+  }
+  .btn:hover{border-color:var(--accent);}
+  .btn.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);}
+  .btn.danger{
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--danger);
+    padding:4px 8px;
+    font-size:0.8rem;
+  }
+  .btn.danger:hover{color:var(--danger-hover);text-decoration:underline;}
+  .btn.ghost{background:transparent;}
+  .add-row{margin-top:4px;}
+
+  .actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    margin:26px 0 40px;
+  }
+  .actions .spacer{flex:1;}
+
+  dialog#previewDialog{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:0;
+    max-width:720px;
+    width:92vw;
+    background:var(--panel);
+    color:var(--text);
+  }
+  dialog#previewDialog::backdrop{background:rgba(0,0,0,0.5);}
+  .dialog-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .dialog-head h3{margin:0;font-size:1rem;}
+  .dialog-body{padding:16px 18px;max-height:60vh;overflow:auto;}
+  .dialog-body pre{
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-size:0.8rem;
+    margin:0;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+  }
+  .dialog-foot{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+    padding:14px 18px;
+    border-top:1px solid var(--border);
+  }
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--text);
+    color:var(--bg);
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:0.85rem;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s ease;
+    z-index:50;
+  }
+  .toast.show{opacity:1;}
+  .required-mark{color:var(--danger);}
+  input[type=file]{
+    font-size:0.85rem;
+    color:var(--text);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <h1>Candidate Profile Form</h1>
+    <p>Fill in your details below, then click <strong>Generate &amp; Download JSON</strong> at the bottom
+      to save your profile as a <code>.json</code> file. Send that file back to the recruiter. Nothing you
+      type here is uploaded anywhere — the file is created directly in your browser.
+      Already have a filled JSON file? Use <strong>Import JSON</strong> to load and edit it.</p>
+  </header>
+
+  <form id="resumeForm">
+
+    <!-- PROFILE -->
+    <section class="card">
+      <h2>Profile</h2>
+      <p class="card-sub">Basic personal and professional summary.</p>
+      <div class="grid">
+        <div class="field span-2">
+          <label>Full name <span class="required-mark">*</span></label>
+          <input type="text" id="p-name" required placeholder="Jane Doe">
+        </div>
+        <div class="field">
+          <label>Current title</label>
+          <input type="text" id="p-title" placeholder="e.g. R&amp;D Engineer">
+        </div>
+        <div class="field">
+          <label>Base city</label>
+          <input type="text" id="p-city" placeholder="e.g. Helsinki">
+        </div>
+        <div class="field">
+          <label>Total years of experience</label>
+          <input type="number" min="0" step="0.5" id="p-years-total">
+        </div>
+        <div class="field">
+          <label>Years of relevant/core experience</label>
+          <input type="number" min="0" step="0.5" id="p-years-core">
+        </div>
+        <div class="field span-2">
+          <label>Summary</label>
+          <textarea id="p-summary" placeholder="Short professional summary..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ELIGIBILITY -->
+    <section class="card">
+      <h2>Eligibility</h2>
+      <p class="card-sub">Work authorization and availability.</p>
+      <div class="grid">
+        <div class="field">
+          <label>Work authorization</label>
+          <select id="e-work-auth">
+            <option value="">Select...</option>
+            <option>Allowed</option>
+            <option>Requires sponsorship/visa</option>
+            <option>Not eligible</option>
+            <option>Not applicable</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Notice period</label>
+          <input type="text" id="e-notice" placeholder="e.g. 1 Month / Immediate">
+        </div>
+        <div class="field">
+          <div class="checkbox-row" style="margin-top:22px;">
+            <input type="checkbox" id="e-employed">
+            <label for="e-employed">Currently employed</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LANGUAGES -->
+    <section class="card">
+      <h2>Languages</h2>
+      <p class="card-sub">Add every language you speak.</p>
+      <div id="languages-list"></div>
+      <button type="button" class="btn add-row" data-add="tmpl-language" data-target="languages-list">+ Add language</button>
+    </section>
+
+    <!-- TARGET -->
+    <section class="card">
+      <h2>Target role &amp; preferences</h2>
+      <p class="card-sub">What you're looking for. For tag fields, type a value and press Enter to add it.</p>
+      <div class="grid">
+        <div class="field span-2">
+          <label>Role types</label>
+          <div class="tag-input" id="t-role-types"><div class="chips"></div><input type="text" class="tag-entry" placeholder="e.g. Automation Engineer"></div>
+        </div>
+        <div class="field">
+          <label>Employment type</label>
+          <input type="text" id="t-employment-type" placeholder="e.g. permanent, full-time">
+        </div>
+        <div class="field">
+          <label>Remote preference</label>
+          <input type="text" id="t-remote-pref" placeholder="e.g. hybrid, time to time">
+        </div>
+        <div class="field span-2">
+          <label>Preferred locations</label>
+          <div class="tag-input" id="t-locations"><div class="chips"></div><input type="text" class="tag-entry" placeholder="e.g. Helsinki"></div>
+        </div>
+        <div class="field">
+          <label>Travel willingness (%)</label>
+          <input type="number" min="0" max="100" id="t-travel">
+        </div>
+        <div class="field">
+          <div class="checkbox-row" style="margin-top:22px;">
+            <input type="checkbox" id="t-relocation">
+            <label for="t-relocation">Willing to relocate</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Salary expectation — minimum (per month, gross)</label>
+          <input type="number" min="0" step="50" id="t-salary-min">
+        </div>
+        <div class="field">
+          <label>Salary expectation — target (per month, gross)</label>
+          <input type="number" min="0" step="50" id="t-salary-target">
+        </div>
+        <div class="field span-2">
+          <label>Preferred industries</label>
+          <div class="tag-input" id="t-industries-pref"><div class="chips"></div><input type="text" class="tag-entry" placeholder="e.g. Automation"></div>
+        </div>
+        <div class="field span-2">
+          <label>Excluded industries</label>
+          <div class="tag-input" id="t-industries-excl"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Industries to avoid"></div>
+        </div>
+        <div class="field span-2">
+          <label>Companies of interest</label>
+          <div class="tag-input" id="t-companies-interest"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Optional"></div>
+        </div>
+        <div class="field span-2">
+          <label>Companies to exclude</label>
+          <div class="tag-input" id="t-companies-excl"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Optional"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section class="card">
+      <h2>Work experience</h2>
+      <p class="card-sub">Add each role, most relevant details first. Leave "End" blank or type "present" for your current role.</p>
+      <div id="experience-list"></div>
+      <button type="button" class="btn add-row" data-add="tmpl-experience" data-target="experience-list">+ Add experience</button>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="card">
+      <h2>Skills</h2>
+      <p class="card-sub">Rename, remove, or add categories to fit your background. Inside a category, type a skill and press Enter to add it.</p>
+      <div id="skills-list"></div>
+      <button type="button" class="btn add-row" id="add-skill-category">+ Add category</button>
+    </section>
+
+    <!-- CERTIFICATIONS -->
+    <section class="card">
+      <h2>Certifications</h2>
+      <p class="card-sub">Certifications you currently hold.</p>
+      <div id="certifications-list"></div>
+      <button type="button" class="btn add-row" data-add="tmpl-certification" data-target="certifications-list">+ Add certification</button>
+    </section>
+
+    <section class="card">
+      <h2>Planned certifications</h2>
+      <p class="card-sub">Certifications you're working towards, if any.</p>
+      <div id="certifications-planned-list"></div>
+      <button type="button" class="btn add-row" data-add="tmpl-certification" data-target="certifications-planned-list">+ Add planned certification</button>
+    </section>
+
+    <!-- EDUCATION -->
+    <section class="card">
+      <h2>Education</h2>
+      <p class="card-sub">Degrees, most recent first.</p>
+      <div id="education-list"></div>
+      <button type="button" class="btn add-row" data-add="tmpl-education" data-target="education-list">+ Add education</button>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="card">
+      <h2>Projects</h2>
+      <p class="card-sub">Notable projects, personal or professional.</p>
+      <div id="projects-list"></div>
+      <button type="button" class="btn add-row" data-add="tmpl-project" data-target="projects-list">+ Add project</button>
+    </section>
+
+    <!-- PUBLICATIONS -->
+    <section class="card">
+      <h2>Online presence</h2>
+      <div class="grid">
+        <div class="field"><label>LinkedIn URL</label><input type="url" id="pub-linkedin" placeholder="https://linkedin.com/in/..."></div>
+        <div class="field"><label>GitHub URL</label><input type="url" id="pub-github" placeholder="https://github.com/..."></div>
+        <div class="field"><label>Portfolio / site</label><input type="url" id="pub-portfolio" placeholder="https://..."></div>
+        <div class="field span-2">
+          <label>Topics you write about</label>
+          <div class="tag-input" id="pub-topics"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Optional"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONSTRAINTS -->
+    <section class="card">
+      <h2>Constraints &amp; dealbreakers</h2>
+      <p class="card-sub">Anything that would rule out a role for you.</p>
+      <div class="tag-input" id="constraints"><div class="chips"></div><input type="text" class="tag-entry" placeholder="e.g. no night shifts"></div>
+    </section>
+
+    <!-- OTHER -->
+    <section class="card">
+      <h2>Other</h2>
+      <div class="grid">
+        <div class="field span-2">
+          <label>Visas held</label>
+          <div class="tag-input" id="other-visas"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Optional"></div>
+        </div>
+        <div class="field span-2">
+          <label>Hobbies</label>
+          <div class="tag-input" id="other-hobbies"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Optional"></div>
+        </div>
+        <div class="field span-2">
+          <label>Workshop / home lab <span class="opt">(optional)</span></label>
+          <input type="text" id="other-workshop">
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="card">
+      <h2>Notes</h2>
+      <p class="card-sub">Anything else useful for search/matching that isn't covered above.</p>
+      <textarea id="notes" style="min-height:60px;"></textarea>
+    </section>
+
+    <div class="actions">
+      <input type="file" id="importFile" accept="application/json" hidden>
+      <button type="button" class="btn ghost" id="importBtn">Import JSON</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="previewBtn">Preview JSON</button>
+      <button type="submit" class="btn primary" id="downloadBtn">Generate &amp; Download JSON</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- ===== Templates for repeatable blocks ===== -->
+
+<template id="tmpl-language">
+  <div class="block">
+    <div class="block-head"><span>Language</span><button type="button" class="btn danger remove-block">Remove</button></div>
+    <div class="grid cols-3">
+      <div class="field"><label>Language</label><input type="text" class="f-language" placeholder="e.g. English"></div>
+      <div class="field"><label>Level</label><input type="text" class="f-level" placeholder="e.g. Fluent"></div>
+      <div class="field">
+        <div class="checkbox-row" style="margin-top:22px;">
+          <input type="checkbox" class="f-comfortable">
+          <label>Comfortable interviewing in this language</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tmpl-experience">
+  <div class="block">
+    <div class="block-head"><span>Experience</span><button type="button" class="btn danger remove-block">Remove</button></div>
+    <div class="grid">
+      <div class="field"><label>Company</label><input type="text" class="f-company"></div>
+      <div class="field"><label>Industry</label><input type="text" class="f-industry"></div>
+      <div class="field"><label>Job title</label><input type="text" class="f-title"></div>
+      <div class="field"><label>Location</label><input type="text" class="f-location"></div>
+      <div class="field"><label>Start <span class="opt">(YYYY-MM)</span></label><input type="text" class="f-start" placeholder="2021-03"></div>
+      <div class="field"><label>End <span class="opt">(YYYY-MM or "present")</span></label><input type="text" class="f-end" placeholder="present"></div>
+      <div class="field span-2"><label>Scope</label><textarea class="f-scope" placeholder="What was this role/project about?"></textarea></div>
+      <div class="field span-2">
+        <label>Responsibilities</label>
+        <div class="tag-input f-responsibilities"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Type and press Enter"></div>
+      </div>
+      <div class="field span-2">
+        <label>Achievements</label>
+        <div class="tag-input f-achievements"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Type and press Enter"></div>
+      </div>
+      <div class="field span-2">
+        <label>Tech used</label>
+        <div class="tag-input f-tech_used"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Type and press Enter"></div>
+      </div>
+      <div class="field span-2">
+        <label>Phases covered</label>
+        <div class="tag-input f-phases_covered"><div class="chips"></div><input type="text" class="tag-entry" placeholder="e.g. design, programming, commissioning"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tmpl-skill-category">
+  <div class="block skill-block">
+    <div class="block-head">
+      <input type="text" class="f-category-name category-name-input" placeholder="Category name (e.g. Programming languages)">
+      <button type="button" class="btn danger remove-block">Remove</button>
+    </div>
+    <div class="tag-input f-category-values"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Type a skill and press Enter"></div>
+  </div>
+</template>
+
+<template id="tmpl-certification">
+  <div class="block">
+    <div class="block-head"><span>Certification</span><button type="button" class="btn danger remove-block">Remove</button></div>
+    <div class="grid">
+      <div class="field"><label>Name</label><input type="text" class="f-name"></div>
+      <div class="field"><label>Issuer <span class="opt">(optional)</span></label><input type="text" class="f-issuer"></div>
+      <div class="field"><label>Year <span class="opt">(optional)</span></label><input type="number" class="f-year" min="1950" max="2100"></div>
+      <div class="field"><label>Expires <span class="opt">(optional)</span></label><input type="text" class="f-expires" placeholder="e.g. 2027 or never"></div>
+    </div>
+  </div>
+</template>
+
+<template id="tmpl-education">
+  <div class="block">
+    <div class="block-head"><span>Education</span><button type="button" class="btn danger remove-block">Remove</button></div>
+    <div class="grid">
+      <div class="field"><label>Degree</label><input type="text" class="f-degree" placeholder="e.g. Bachelor of Science"></div>
+      <div class="field"><label>Field of study</label><input type="text" class="f-field"></div>
+      <div class="field"><label>Institution</label><input type="text" class="f-institution"></div>
+      <div class="field"><label>Country</label><input type="text" class="f-country"></div>
+      <div class="field"><label>Graduation year</label><input type="number" class="f-grad-year" min="1950" max="2100"></div>
+      <div class="field">
+        <label>Recognized locally <span class="opt">(if relevant)</span></label>
+        <select class="f-recognized">
+          <option value="">N/A</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+          <option value="Pending">Pending / Unknown</option>
+        </select>
+      </div>
+      <div class="field span-2"><label>Thesis / final project <span class="opt">(optional)</span></label><input type="text" class="f-thesis"></div>
+    </div>
+  </div>
+</template>
+
+<template id="tmpl-project">
+  <div class="block">
+    <div class="block-head"><span>Project</span><button type="button" class="btn danger remove-block">Remove</button></div>
+    <div class="grid">
+      <div class="field span-2"><label>Name</label><input type="text" class="f-name"></div>
+      <div class="field span-2"><label>Description</label><textarea class="f-description"></textarea></div>
+      <div class="field span-2">
+        <label>Technologies used</label>
+        <div class="tag-input f-tech"><div class="chips"></div><input type="text" class="tag-entry" placeholder="Type and press Enter"></div>
+      </div>
+      <div class="field"><label>Link <span class="opt">(optional)</span></label><input type="url" class="f-link"></div>
+      <div class="field">
+        <div class="checkbox-row" style="margin-top:22px;">
+          <input type="checkbox" class="f-public">
+          <label>Publicly viewable</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Preview dialog -->
+<dialog id="previewDialog">
+  <div class="dialog-head">
+    <h3>Generated JSON preview</h3>
+    <button type="button" class="btn ghost" id="closePreview">Close</button>
+  </div>
+  <div class="dialog-body"><pre id="previewContent"></pre></div>
+  <div class="dialog-foot">
+    <button type="button" class="btn" id="copyJsonBtn">Copy to clipboard</button>
+    <button type="button" class="btn primary" id="downloadFromPreview">Download JSON</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- tag input handling ---------- */
+  function addChip(tagInputEl, value){
+    value = (value || "").trim();
+    if (!value) return;
+    const chips = tagInputEl.querySelector('.chips');
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.dataset.value = value;
+    const text = document.createElement('span');
+    text.className = 'chip-text';
+    text.textContent = value;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'chip-remove';
+    remove.setAttribute('aria-label', 'Remove');
+    remove.textContent = '×';
+    chip.appendChild(text);
+    chip.appendChild(remove);
+    chips.appendChild(chip);
+  }
+
+  function setupTagInput(tagInputEl){
+    if (tagInputEl.dataset.init) return;
+    tagInputEl.dataset.init = '1';
+    const input = tagInputEl.querySelector('.tag-entry');
+    if (!input) return;
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ','){
+        e.preventDefault();
+        addChip(tagInputEl, input.value);
+        input.value = '';
+      }
+    });
+  }
+
+  function initTagInputsWithin(root){
+    root.querySelectorAll('.tag-input').forEach(setupTagInput);
+  }
+
+  function getTagValues(tagInputEl){
+    if (!tagInputEl) return [];
+    return Array.from(tagInputEl.querySelectorAll('.chips .chip')).map(c => c.dataset.value);
+  }
+
+  function setTagValues(tagInputEl, values){
+    if (!tagInputEl) return;
+    const chips = tagInputEl.querySelector('.chips');
+    chips.innerHTML = '';
+    (values || []).forEach(v => addChip(tagInputEl, v));
+  }
+
+  // remove chip (event delegation)
+  document.addEventListener('click', function(e){
+    if (e.target.classList.contains('chip-remove')){
+      const chip = e.target.closest('.chip');
+      if (chip) chip.remove();
+    }
+    if (e.target.classList.contains('remove-block')){
+      const block = e.target.closest('.block');
+      if (block) block.remove();
+    }
+  });
+
+  // init tag inputs already present in the static form
+  initTagInputsWithin(document);
+
+  /* ---------- repeatable block add buttons ---------- */
+  function addBlock(tmplId, targetId){
+    const tmpl = document.getElementById(tmplId);
+    const target = document.getElementById(targetId);
+    const node = tmpl.content.cloneNode(true);
+    target.appendChild(node);
+    initTagInputsWithin(target.lastElementChild);
+    return target.lastElementChild;
+  }
+
+  document.querySelectorAll('[data-add]').forEach(btn => {
+    btn.addEventListener('click', function(){
+      addBlock(btn.dataset.add, btn.dataset.target);
+    });
+  });
+
+  // start with one empty block in each repeatable section for convenience
+  addBlock('tmpl-language', 'languages-list');
+  addBlock('tmpl-experience', 'experience-list');
+  addBlock('tmpl-certification', 'certifications-list');
+  addBlock('tmpl-education', 'education-list');
+  addBlock('tmpl-project', 'projects-list');
+
+  /* ---------- skills: editable, addable categories ---------- */
+  const DEFAULT_SKILL_CATEGORIES = ['Technical skills', 'Tools & platforms'];
+
+  function addSkillCategory(name, values){
+    const node = addBlock('tmpl-skill-category', 'skills-list');
+    node.querySelector('.f-category-name').value = name || '';
+    if (values && values.length) setTagValues(node.querySelector('.f-category-values'), values);
+    return node;
+  }
+
+  document.getElementById('add-skill-category').addEventListener('click', function(){
+    const node = addSkillCategory('');
+    node.querySelector('.f-category-name').focus();
+  });
+
+  DEFAULT_SKILL_CATEGORIES.forEach(name => addSkillCategory(name));
+
+  function slugifyKey(s){
+    return (s || '').toLowerCase().trim()
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'category';
+  }
+
+  function keyToLabel(key){
+    return key.split('_').filter(Boolean)
+      .map(w => w.length <= 3 ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
+  function gatherSkills(){
+    const result = {};
+    const usedKeys = new Set();
+    document.querySelectorAll('#skills-list .block').forEach(b => {
+      const label = b.querySelector('.f-category-name').value.trim();
+      const values = getTagValues(b.querySelector('.f-category-values'));
+      if (!label && values.length === 0) return;
+      let key = slugifyKey(label);
+      let finalKey = key, i = 2;
+      while (usedKeys.has(finalKey)){ finalKey = key + '_' + i; i++; }
+      usedKeys.add(finalKey);
+      result[finalKey] = values;
+    });
+    return result;
+  }
+
+  /* ---------- gather data into the schema ---------- */
+  function val(id){ return document.getElementById(id).value.trim(); }
+  function num(id){ const v = document.getElementById(id).value; return v === '' ? 0 : Number(v); }
+  function numOrNull(id){ const v = document.getElementById(id).value; return v === '' ? null : Number(v); }
+  function checked(id){ return document.getElementById(id).checked; }
+
+  function gatherLanguages(){
+    return Array.from(document.querySelectorAll('#languages-list .block')).map(b => ({
+      language: b.querySelector('.f-language').value.trim(),
+      level: b.querySelector('.f-level').value.trim(),
+      comfortable_in_interview: b.querySelector('.f-comfortable').checked
+    })).filter(l => l.language || l.level);
+  }
+
+  function gatherExperience(){
+    return Array.from(document.querySelectorAll('#experience-list .block')).map(b => ({
+      company: b.querySelector('.f-company').value.trim(),
+      industry: b.querySelector('.f-industry').value.trim(),
+      title: b.querySelector('.f-title').value.trim(),
+      location: b.querySelector('.f-location').value.trim(),
+      start: b.querySelector('.f-start').value.trim(),
+      end: b.querySelector('.f-end').value.trim(),
+      scope: b.querySelector('.f-scope').value.trim(),
+      responsibilities: getTagValues(b.querySelector('.f-responsibilities')),
+      achievements: getTagValues(b.querySelector('.f-achievements')),
+      tech_used: getTagValues(b.querySelector('.f-tech_used')),
+      phases_covered: getTagValues(b.querySelector('.f-phases_covered'))
+    })).filter(e => e.company || e.title);
+  }
+
+  function gatherCertifications(containerId){
+    return Array.from(document.querySelectorAll('#' + containerId + ' .block')).map(b => ({
+      name: b.querySelector('.f-name').value.trim(),
+      issuer: b.querySelector('.f-issuer').value.trim(),
+      year: b.querySelector('.f-year').value === '' ? 0 : Number(b.querySelector('.f-year').value),
+      expires: b.querySelector('.f-expires').value.trim()
+    })).filter(c => c.name);
+  }
+
+  function gatherEducation(){
+    return Array.from(document.querySelectorAll('#education-list .block')).map(b => ({
+      degree: b.querySelector('.f-degree').value.trim(),
+      field: b.querySelector('.f-field').value.trim(),
+      institution: b.querySelector('.f-institution').value.trim(),
+      country: b.querySelector('.f-country').value.trim(),
+      graduation_year: b.querySelector('.f-grad-year').value === '' ? 0 : Number(b.querySelector('.f-grad-year').value),
+      recognized_in_finland: b.querySelector('.f-recognized').value,
+      thesis: b.querySelector('.f-thesis').value.trim()
+    })).filter(e => e.degree || e.institution);
+  }
+
+  function gatherProjects(){
+    return Array.from(document.querySelectorAll('#projects-list .block')).map(b => ({
+      name: b.querySelector('.f-name').value.trim(),
+      description: b.querySelector('.f-description').value.trim(),
+      tech: getTagValues(b.querySelector('.f-tech')),
+      link: b.querySelector('.f-link').value.trim(),
+      is_public: b.querySelector('.f-public').checked
+    })).filter(p => p.name);
+  }
+
+  function buildData(){
+    return {
+      profile: {
+        name: val('p-name'),
+        current_title: val('p-title'),
+        years_experience_total: numOrNull('p-years-total') || 0,
+        years_experience_automation: numOrNull('p-years-core') || 0,
+        base_city: val('p-city'),
+        summary: val('p-summary')
+      },
+      eligibility: {
+        work_authorization_finland: val('e-work-auth'),
+        notice_period: val('e-notice'),
+        currently_employed: checked('e-employed')
+      },
+      languages: gatherLanguages(),
+      target: {
+        role_types: getTagValues(document.getElementById('t-role-types')),
+        employment_type: val('t-employment-type'),
+        locations: getTagValues(document.getElementById('t-locations')),
+        remote_preference: val('t-remote-pref'),
+        travel_willingness_percent: numOrNull('t-travel') || 0,
+        relocation_willing: checked('t-relocation'),
+        salary_expectation_eur_month_gross: {
+          minimum: numOrNull('t-salary-min') || 0,
+          target: numOrNull('t-salary-target') || 0
+        },
+        industries_preferred: getTagValues(document.getElementById('t-industries-pref')),
+        industries_excluded: getTagValues(document.getElementById('t-industries-excl')),
+        companies_of_interest: getTagValues(document.getElementById('t-companies-interest')),
+        companies_excluded: getTagValues(document.getElementById('t-companies-excl'))
+      },
+      experience: gatherExperience(),
+      skills: gatherSkills(),
+      certifications: gatherCertifications('certifications-list'),
+      certifications_planned: gatherCertifications('certifications-planned-list'),
+      education: gatherEducation(),
+      projects: gatherProjects(),
+      publications_and_content: {
+        linkedin_url: val('pub-linkedin'),
+        github_url: val('pub-github'),
+        topics_you_write_about: getTagValues(document.getElementById('pub-topics')),
+        portfolio_or_site: val('pub-portfolio')
+      },
+      constraints_and_dealbreakers: getTagValues(document.getElementById('constraints')),
+      other: {
+        visas: getTagValues(document.getElementById('other-visas')),
+        hobbies: getTagValues(document.getElementById('other-hobbies')),
+        workshop: val('other-workshop')
+      },
+      notes_for_search: val('notes')
+    };
+  }
+
+  function slug(s){
+    return (s || 'candidate').toLowerCase().trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'candidate';
+  }
+
+  function downloadJson(){
+    const data = buildData();
+    const filename = 'resume-' + slug(data.profile.name) + '.json';
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Downloaded ' + filename);
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  /* ---------- preview dialog ---------- */
+  const previewDialog = document.getElementById('previewDialog');
+  document.getElementById('previewBtn').addEventListener('click', function(){
+    document.getElementById('previewContent').textContent = JSON.stringify(buildData(), null, 2);
+    previewDialog.showModal();
+  });
+  document.getElementById('closePreview').addEventListener('click', () => previewDialog.close());
+  document.getElementById('copyJsonBtn').addEventListener('click', function(){
+    navigator.clipboard.writeText(document.getElementById('previewContent').textContent)
+      .then(() => showToast('Copied to clipboard'))
+      .catch(() => showToast('Could not copy — select and copy manually'));
+  });
+  document.getElementById('downloadFromPreview').addEventListener('click', downloadJson);
+
+  /* ---------- form submit ---------- */
+  document.getElementById('resumeForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!val('p-name')){
+      showToast('Please enter your full name');
+      document.getElementById('p-name').focus();
+      return;
+    }
+    downloadJson();
+  });
+
+  /* ---------- import existing JSON ---------- */
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+  importBtn.addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', function(){
+    const file = importFile.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(){
+      try {
+        const data = JSON.parse(reader.result);
+        populateForm(data);
+        showToast('Loaded ' + file.name);
+      } catch (err) {
+        showToast('Could not read that file as JSON');
+      }
+      importFile.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  function setVal(id, v){
+    const el = document.getElementById(id);
+    if (el && v !== undefined && v !== null) el.value = v;
+  }
+  function setChecked(id, v){
+    const el = document.getElementById(id);
+    if (el) el.checked = !!v;
+  }
+  function clearContainer(id){
+    document.getElementById(id).innerHTML = '';
+  }
+
+  function populateForm(data){
+    data = data || {};
+    const profile = data.profile || {};
+    setVal('p-name', profile.name);
+    setVal('p-title', profile.current_title);
+    setVal('p-city', profile.base_city);
+    setVal('p-years-total', profile.years_experience_total);
+    setVal('p-years-core', profile.years_experience_automation);
+    setVal('p-summary', profile.summary);
+
+    const eligibility = data.eligibility || {};
+    setVal('e-work-auth', eligibility.work_authorization_finland);
+    setVal('e-notice', eligibility.notice_period);
+    setChecked('e-employed', eligibility.currently_employed);
+
+    clearContainer('languages-list');
+    (data.languages || []).forEach(lang => {
+      const b = addBlock('tmpl-language', 'languages-list');
+      b.querySelector('.f-language').value = lang.language || '';
+      b.querySelector('.f-level').value = lang.level || '';
+      b.querySelector('.f-comfortable').checked = !!lang.comfortable_in_interview;
+    });
+
+    const target = data.target || {};
+    setTagValues(document.getElementById('t-role-types'), target.role_types);
+    setVal('t-employment-type', target.employment_type);
+    setTagValues(document.getElementById('t-locations'), target.locations);
+    setVal('t-remote-pref', target.remote_preference);
+    setVal('t-travel', target.travel_willingness_percent);
+    setChecked('t-relocation', target.relocation_willing);
+    const salary = target.salary_expectation_eur_month_gross || {};
+    setVal('t-salary-min', salary.minimum);
+    setVal('t-salary-target', salary.target);
+    setTagValues(document.getElementById('t-industries-pref'), target.industries_preferred);
+    setTagValues(document.getElementById('t-industries-excl'), target.industries_excluded);
+    setTagValues(document.getElementById('t-companies-interest'), target.companies_of_interest);
+    setTagValues(document.getElementById('t-companies-excl'), target.companies_excluded);
+
+    clearContainer('experience-list');
+    (data.experience || []).forEach(exp => {
+      const b = addBlock('tmpl-experience', 'experience-list');
+      b.querySelector('.f-company').value = exp.company || '';
+      b.querySelector('.f-industry').value = exp.industry || '';
+      b.querySelector('.f-title').value = exp.title || '';
+      b.querySelector('.f-location').value = exp.location || '';
+      b.querySelector('.f-start').value = exp.start || '';
+      b.querySelector('.f-end').value = exp.end || '';
+      b.querySelector('.f-scope').value = exp.scope || '';
+      setTagValues(b.querySelector('.f-responsibilities'), exp.responsibilities);
+      setTagValues(b.querySelector('.f-achievements'), exp.achievements);
+      setTagValues(b.querySelector('.f-tech_used'), exp.tech_used);
+      setTagValues(b.querySelector('.f-phases_covered'), exp.phases_covered);
+    });
+
+    clearContainer('skills-list');
+    const skillEntries = Object.entries(data.skills || {});
+    if (skillEntries.length){
+      skillEntries.forEach(([key, values]) => addSkillCategory(keyToLabel(key), values));
+    } else {
+      DEFAULT_SKILL_CATEGORIES.forEach(name => addSkillCategory(name));
+    }
+
+    function fillCerts(containerId, list){
+      clearContainer(containerId);
+      (list || []).forEach(c => {
+        const b = addBlock('tmpl-certification', containerId);
+        b.querySelector('.f-name').value = c.name || '';
+        b.querySelector('.f-issuer').value = c.issuer || '';
+        b.querySelector('.f-year').value = c.year || '';
+        b.querySelector('.f-expires').value = c.expires || '';
+      });
+    }
+    fillCerts('certifications-list', data.certifications);
+    fillCerts('certifications-planned-list', data.certifications_planned);
+
+    clearContainer('education-list');
+    (data.education || []).forEach(ed => {
+      const b = addBlock('tmpl-education', 'education-list');
+      b.querySelector('.f-degree').value = ed.degree || '';
+      b.querySelector('.f-field').value = ed.field || '';
+      b.querySelector('.f-institution').value = ed.institution || '';
+      b.querySelector('.f-country').value = ed.country || '';
+      b.querySelector('.f-grad-year').value = ed.graduation_year || '';
+      b.querySelector('.f-recognized').value = ed.recognized_in_finland || '';
+      b.querySelector('.f-thesis').value = ed.thesis || '';
+    });
+
+    clearContainer('projects-list');
+    (data.projects || []).forEach(pr => {
+      const b = addBlock('tmpl-project', 'projects-list');
+      b.querySelector('.f-name').value = pr.name || '';
+      b.querySelector('.f-description').value = pr.description || '';
+      setTagValues(b.querySelector('.f-tech'), pr.tech);
+      b.querySelector('.f-link').value = pr.link || '';
+      b.querySelector('.f-public').checked = !!pr.is_public;
+    });
+
+    const pub = data.publications_and_content || {};
+    setVal('pub-linkedin', pub.linkedin_url);
+    setVal('pub-github', pub.github_url);
+    setVal('pub-portfolio', pub.portfolio_or_site);
+    setTagValues(document.getElementById('pub-topics'), pub.topics_you_write_about);
+
+    setTagValues(document.getElementById('constraints'), data.constraints_and_dealbreakers);
+
+    const other = data.other || {};
+    setTagValues(document.getElementById('other-visas'), other.visas);
+    setTagValues(document.getElementById('other-hobbies'), other.hobbies);
+    setVal('other-workshop', other.workshop);
+
+    setVal('notes', data.notes_for_search);
+  }
+
+})();
+</script>
+</body>
+</html>
