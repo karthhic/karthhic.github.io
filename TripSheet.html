@@ -1,0 +1,467 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Trip Sheet Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: two-pane workbench — paste text on the left, exact PNG preview on the right; stacks on phones */
+:root{
+  --bg:#EEF1F3; --panel:#FFFFFF; --fg:#131D25; --muted:#5A6A75; --line:#D3DADF;
+  --accent:#C9741F; --accent-soft:#FBEBD9; --focus:#2F6FB0;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D151B; --panel:#141F27; --fg:#E6ECF0; --muted:#8C9CA7; --line:#26343F;
+  --accent:#EFA24A; --accent-soft:#2B2116; --focus:#6FA8E0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D151B; --panel:#141F27; --fg:#E6ECF0; --muted:#8C9CA7; --line:#26343F;
+  --accent:#EFA24A; --accent-soft:#2B2116; --focus:#6FA8E0; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-inline:16px;display:grid;gap:20px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px}
+header.top h1{font-family:var(--f-display);font-weight:700;font-size:34px;letter-spacing:.01em;margin:0;text-wrap:balance}
+header.top p{margin:0;color:var(--muted);max-width:60ch}
+.grid{display:grid;gap:20px;grid-template-columns:1fr}
+@media (min-width:920px){.grid{grid-template-columns:minmax(360px,440px) 1fr;align-items:start}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;display:grid;gap:14px;min-width:0}
+.panel.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+label.f{display:grid;gap:5px;font-size:12px;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%;text-transform:none;letter-spacing:0}
+textarea{font-family:var(--f-mono);font-size:13px;line-height:1.55;min-height:420px;resize:vertical;white-space:pre;overflow:auto}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.row{grid-template-columns:1fr}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;background:transparent;color:var(--fg);border:0;padding:7px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--panel)}
+.opts{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.opts .lbl{font-family:var(--f-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:600;font-size:15px;border-radius:4px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1A1006}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.link{font:inherit;font-size:13px;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0}
+.status{font-size:13px;color:var(--muted);min-height:1.2em}
+details{font-size:13px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--fg);font-weight:500}
+details ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+code{font-family:var(--f-mono);font-size:12px;background:var(--bg);padding:1px 4px;border-radius:3px}
+.preview{display:grid;gap:10px;min-width:0}
+.preview .bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.preview img{display:block;width:100%;max-width:720px;height:auto;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,0,0,.45);background:var(--panel)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Trip Sheet Maker</h1>
+    <p>Paste your itinerary as plain text. The sheet on the right is the exact PNG you'll share.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel sticky" aria-label="Itinerary input">
+      <div class="row">
+        <label class="f" for="title">Title<input id="title" type="text" value="Site Visit · Lyon"></label>
+        <label class="f" for="traveler">Traveler<input id="traveler" type="text" placeholder="Optional"></label>
+      </div>
+      <div class="row">
+        <label class="f" for="route">Route<input id="route" type="text" value="Home → Frankfurt → Lyon → Home"></label>
+        <label class="f" for="base">Based at<input id="base" type="text" value="Lyon"></label>
+      </div>
+      <label class="f" for="src">Itinerary text<textarea id="src" spellcheck="false"></textarea></label>
+      <div class="opts">
+        <span class="lbl">Sheet</span>
+        <div class="seg" role="group" aria-label="Sheet colors">
+          <button type="button" id="thLight" aria-pressed="true">Light</button>
+          <button type="button" id="thDark" aria-pressed="false">Dark</button>
+        </div>
+        <button type="button" class="link" id="reset">Load example</button>
+      </div>
+      <details>
+        <summary>How lines are read</summary>
+        <ul>
+          <li>A line starting with a weekday starts a new day: <code>Sunday 8/3/2026</code>. Add <code>*note</code> after it for a flag.</li>
+          <li>A line starting with a time becomes a timed stop: <code>0945 Hrs Take-off</code>, <code>1050 Landing</code> or <code>09:45 …</code>.</li>
+          <li>A line starting with <code>❗</code> or <code>!</code> is highlighted as a warning.</li>
+          <li>An indented line is a note under the line above it.</li>
+          <li>Anything else is a task for that day.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="preview" aria-label="Sheet preview">
+      <div class="actions">
+        <button type="button" class="btn primary" id="save">Save PNG</button>
+        <button type="button" class="btn" id="copy">Copy image</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+      <div class="bar"><span id="meta">Rendering…</span><span>2160 px wide · retina</span></div>
+      <img id="out" alt="Rendered itinerary sheet">
+      <p class="hint">You can also right-click or long-press the sheet to save or share it.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const EXAMPLE = `Sunday 8/3/2026
+0700 Hrs Baggage drop
+0945 Hrs Take-off to Frankfurt
+1050 Landing in Frankfurt
+❗Collect baggage and check in again in Frankfurt
+1350 Hrs Take-off to Lyon
+1530 Hrs Landing at Lyon airport
+1630 Hrs Rental car pickup
+1900 Hrs Hotel check-in
+
+Monday 9/3/2026
+Site induction and paperwork
+Move the machine frame and body into place
+Measure and align body and frame
+
+Tuesday 10/3/2026 *Extra hours possible
+Assembly
+Electrical wiring
+Powering up
+Safety testing
+
+Wednesday 11/3/2026 *Extra hours possible
+Electrical wiring
+Calibration and test run
+
+Thursday 12/3/2026 *Emergency extra hours if needed
+Test runs and fine tuning
+Finalizing
+Operator training
+
+Friday 13/3/2026
+Buffer for last-minute tasks
+Handover meeting
+1400 Hrs Drive to the airport
+             Fuel stop and buffer included (evening rush hour expected)
+1630 Hrs Return the rental car
+1700 Hrs Airport check-in
+1930 Hrs Flight departs
+2230 Hrs Landing at home airport`;
+
+const $ = id => document.getElementById(id);
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+/* ---------- Parser ---------- */
+const dayRe = /^(mon|tues|wednes|thurs|fri|satur|sun)day\b[,\s]*(?:(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?)?\s*(?:\*\s*(.*))?$/i;
+const timeRe = /^(\d{1,2}):?(\d{2})(?:\s*hrs?\b\.?)?\s+(.+)$/i;
+const alertRe = /^(?:❗|‼|⚠|!)+[️\s]*/u;
+
+function parse(text){
+  const days = []; let cur = null, last = null;
+  for (const raw of text.split(/\r?\n/)){
+    const line = raw.replace(/[ ]/g,' ').trim();
+    if (!line){ continue; }
+    const indented = /^[\s ]{2,}/.test(raw);
+    const dm = line.match(dayRe);
+    if (dm){
+      let date = null;
+      if (dm[2]){
+        let y = dm[4] ? +dm[4] : new Date().getFullYear();
+        if (y < 100) y += 2000;
+        date = { d:+dm[2], m:+dm[3], y };
+      }
+      cur = { name: dm[1].toLowerCase()+'day', date, note:(dm[5]||'').trim(), items:[] };
+      days.push(cur); last = null; continue;
+    }
+    if (!cur){ cur = { name:'', date:null, note:'', items:[] }; days.push(cur); }
+    if (indented && last){ last.sub.push(line); continue; }
+    let t = line, alert = false;
+    if (alertRe.test(t)){ alert = true; t = t.replace(alertRe,'').trim(); }
+    const tm = t.match(timeRe);
+    let time = null;
+    if (tm && +tm[1] < 24 && +tm[2] < 60){ time = tm[1].padStart(2,'0')+':'+tm[2]; t = tm[3]; }
+    last = { time, text:t, alert, sub:[] };
+    cur.items.push(last);
+  }
+  return days;
+}
+
+/* ---------- Sheet palettes ---------- */
+const SHEETS = {
+  light:{ bg:'#F6F7F8', paper:'#FFFFFF', ink:'#121C24', muted:'#5B6B76', rule:'#D6DCE0', accent:'#C26A14', soft:'#FBEBD9', danger:'#B83D28', dangerSoft:'#F8DFD8', band:'#121C24', bandInk:'#F6F7F8' },
+  dark: { bg:'#0F1820', paper:'#0F1820', ink:'#E8EEF2', muted:'#8B9BA6', rule:'#27353F', accent:'#F0A44B', soft:'#2B2116', danger:'#EE7A63', dangerSoft:'#33201B', band:'#E8EEF2', bandInk:'#0F1820' }
+};
+let sheetTheme = store.get('tsm.theme') === 'dark' ? 'dark' : 'light';
+
+const F = {
+  label:'500 17px "IBM Plex Mono", monospace',
+  title:'700 76px "Barlow Condensed", "Arial Narrow", sans-serif',
+  meta:'500 26px "Barlow", sans-serif',
+  wd:'700 60px "Barlow Condensed", "Arial Narrow", sans-serif',
+  date:'500 21px "IBM Plex Mono", monospace',
+  kind:'500 14px "IBM Plex Mono", monospace',
+  time:'500 23px "IBM Plex Mono", monospace',
+  item:'500 26px "Barlow", sans-serif',
+  itemB:'600 26px "Barlow", sans-serif',
+  sub:'400 21px "Barlow", sans-serif',
+  pill:'500 15px "IBM Plex Mono", monospace',
+  foot:'400 15px "IBM Plex Mono", monospace'
+};
+
+function wrap(ctx, text, maxW){
+  const words = text.split(/\s+/); const lines = []; let line = '';
+  for (const w of words){
+    const test = line ? line+' '+w : w;
+    if (ctx.measureText(test).width > maxW && line){ lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+function spaced(ctx, px){ if ('letterSpacing' in ctx) ctx.letterSpacing = px+'px'; }
+function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+function fmtRange(days){
+  const ds = days.map(d=>d.date).filter(Boolean);
+  if (!ds.length) return '';
+  const a = ds[0], b = ds[ds.length-1];
+  if (a.m === b.m && a.y === b.y) return `${a.d}–${b.d} ${MON[a.m-1]} ${a.y}`;
+  return `${a.d} ${MON[a.m-1]} – ${b.d} ${MON[b.m-1]} ${b.y}`;
+}
+
+/* ---------- Renderer (one pass for measuring, one for drawing) ---------- */
+const W = 1080, P = 72, LEFT = 190, TCOL = 104;
+
+function layout(ctx, data, draw){
+  const C = SHEETS[sheetTheme];
+  let y = 0;
+  const RX = P + LEFT, RW = W - P - RX;
+
+  // Header band
+  const bandH = (()=>{
+    ctx.font = F.title; const tl = wrap(ctx, data.title || 'Itinerary', W - 2*P);
+    return { tl, h: 56 + 28 + tl.length*76 + 22 + 34 + 52 };
+  })();
+  if (draw){
+    ctx.fillStyle = C.band; ctx.fillRect(0,0,W,bandH.h);
+  }
+  y = 56;
+  if (draw){
+    ctx.font = F.label; spaced(ctx,3); ctx.fillStyle = C.accent; ctx.textBaseline='alphabetic';
+    ctx.fillText('WORK TRIP ITINERARY', P, y+14); spaced(ctx,0);
+  }
+  y += 28;
+  ctx.font = F.title;
+  for (const l of bandH.tl){ y += 76; if (draw){ ctx.fillStyle = C.bandInk; ctx.fillText(l, P, y-8); } }
+  y += 22;
+  const metaParts = [fmtRange(data.days), data.route, data.base && ('Base: '+data.base), data.traveler].filter(Boolean);
+  ctx.font = F.meta;
+  if (draw){
+    let x = P;
+    metaParts.forEach((m,i)=>{
+      if (i){ ctx.fillStyle = C.accent; ctx.fillText('·', x+8, y+20); x += 32; }
+      ctx.fillStyle = C.bandInk; ctx.globalAlpha = i ? .78 : 1;
+      ctx.fillText(m, x, y+20); x += ctx.measureText(m).width + 8; ctx.globalAlpha = 1;
+    });
+  }
+  y = bandH.h + 52;
+
+  // Days
+  data.days.forEach((day, di)=>{
+    const top = y;
+    const timed = day.items.filter(i=>i.time).length, untimed = day.items.length - timed;
+    const kind = timed && untimed ? 'SITE + TRAVEL' : timed ? 'TRAVEL' : 'ON SITE';
+    if (draw){
+      ctx.fillStyle = C.ink; ctx.font = F.wd;
+      ctx.fillText(day.name ? day.name.slice(0,3).toUpperCase() : 'DAY', P, top+48);
+      if (day.date){
+        ctx.font = F.date; ctx.fillStyle = C.muted;
+        ctx.fillText(`${String(day.date.d).padStart(2,'0')} ${MON[day.date.m-1].toUpperCase()}`, P, top+84);
+      }
+      ctx.font = F.kind; spaced(ctx,2); ctx.fillStyle = C.accent;
+      ctx.fillText(kind, P, top+118); spaced(ctx,0);
+    }
+    let ry = top;
+    // Day flag pill
+    if (day.note){
+      const danger = /emergenc|urgent|critical/i.test(day.note);
+      ctx.font = F.pill; spaced(ctx,1.5);
+      const txt = day.note.toUpperCase();
+      const lines = wrap(ctx, txt, RW - 28);
+      const h = 18 + lines.length*22;
+      const w = Math.min(RW, Math.max(...lines.map(l=>ctx.measureText(l).width)) + 28);
+      if (draw){
+        ctx.fillStyle = danger ? C.dangerSoft : C.soft; rrect(ctx, RX, ry+2, w, h, 4); ctx.fill();
+        ctx.fillStyle = danger ? C.danger : C.accent;
+        lines.forEach((l,i)=> ctx.fillText(l, RX+14, ry+2+9+16+i*22));
+      }
+      spaced(ctx,0);
+      ry += h + 22;
+    }
+    const textX = timed ? RX + TCOL : RX + 30;
+    const textW = W - P - textX;
+    const dots = [];
+    day.items.forEach((it, ii)=>{
+      ctx.font = it.alert ? F.itemB : F.item;
+      const lines = wrap(ctx, it.text, textW - (it.alert ? 16 : 0));
+      ctx.font = F.sub;
+      const subs = it.sub.flatMap(s => wrap(ctx, s, textW - (it.alert ? 16 : 0)));
+      const h = lines.length*34 + subs.length*28 + (subs.length ? 6 : 0);
+      const pad = it.alert ? 10 : 0;
+      if (draw){
+        if (it.alert){
+          ctx.fillStyle = C.soft; rrect(ctx, textX-14, ry-2, W-P-textX+14, h+pad*2, 4); ctx.fill();
+          ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(timed ? RX+TCOL-34 : RX+6, ry+pad+18, 13, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = C.paper; ctx.font = '700 18px "Barlow", sans-serif'; ctx.textAlign='center';
+          ctx.fillText('!', timed ? RX+TCOL-34 : RX+6, ry+pad+24); ctx.textAlign='left';
+        } else if (it.time){
+          ctx.font = F.time; ctx.fillStyle = C.ink; ctx.fillText(it.time, RX, ry+26);
+          dots.push(ry+18);
+        } else {
+          ctx.fillStyle = C.muted;
+          ctx.fillRect(timed ? RX+TCOL-38 : RX+2, ry+15, 9, 9);
+        }
+        ctx.font = it.alert ? F.itemB : F.item; ctx.fillStyle = C.ink;
+        lines.forEach((l,i)=> ctx.fillText(l, textX + (it.alert?2:0), ry+pad+26+i*34));
+        ctx.font = F.sub; ctx.fillStyle = C.muted;
+        subs.forEach((l,i)=> ctx.fillText(l, textX + (it.alert?2:0), ry+pad+lines.length*34+6+20+i*28));
+      }
+      ry += h + pad*2 + (ii < day.items.length-1 ? 14 : 0);
+    });
+    if (draw && dots.length > 1){
+      const lx = RX + TCOL - 22;
+      ctx.strokeStyle = C.rule; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(lx, dots[0]); ctx.lineTo(lx, dots[dots.length-1]); ctx.stroke();
+    }
+    if (draw && dots.length){
+      const lx = RX + TCOL - 22;
+      dots.forEach(d=>{ ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(lx,d,6,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle = C.accent; ctx.lineWidth = 2.5; ctx.stroke(); });
+    }
+    y = Math.max(ry, top + 128) + 40;
+    if (di < data.days.length-1){
+      if (draw){ ctx.fillStyle = C.rule; ctx.fillRect(P, y, W-2*P, 1.5); }
+      y += 40;
+    }
+  });
+
+  // Footer
+  y += 12;
+  if (draw){
+    ctx.fillStyle = C.ink; ctx.fillRect(P, y, W-2*P, 3);
+    ctx.font = F.foot; ctx.fillStyle = C.muted; spaced(ctx,1);
+    const now = new Date();
+    ctx.fillText(`PREPARED ${now.getDate()} ${MON[now.getMonth()].toUpperCase()} ${now.getFullYear()}`, P, y+36);
+    ctx.textAlign = 'right'; ctx.fillText('ALL TIMES LOCAL', W-P, y+36); ctx.textAlign='left';
+    spaced(ctx,0);
+  }
+  return y + 72;
+}
+
+const canvas = document.createElement('canvas');
+const SCALE = 2;
+let fontsReady = null;
+function loadFonts(){
+  if (fontsReady) return fontsReady;
+  const faces = ['700 60px "Barlow Condensed"','500 26px "Barlow"','600 26px "Barlow"','400 21px "Barlow"','500 23px "IBM Plex Mono"','400 15px "IBM Plex Mono"'];
+  fontsReady = Promise.race([
+    Promise.all(faces.map(f=>document.fonts.load(f))).catch(()=>{}),
+    new Promise(r=>setTimeout(r, 2500))
+  ]);
+  return fontsReady;
+}
+
+function readData(){
+  return {
+    title: $('title').value.trim(),
+    traveler: $('traveler').value.trim(),
+    route: $('route').value.trim(),
+    base: $('base').value.trim(),
+    days: parse($('src').value)
+  };
+}
+
+async function render(){
+  await loadFonts();
+  const data = readData();
+  const m = canvas.getContext('2d');
+  const H = layout(m, data, false);
+  canvas.width = W*SCALE; canvas.height = Math.ceil(H)*SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(SCALE,0,0,SCALE,0,0);
+  ctx.fillStyle = SHEETS[sheetTheme].paper; ctx.fillRect(0,0,W,H);
+  layout(ctx, data, true);
+  $('out').src = canvas.toDataURL('image/png');
+  const n = data.days.reduce((a,d)=>a+d.items.length,0);
+  $('meta').textContent = `${data.days.length} day${data.days.length===1?'':'s'} · ${n} entr${n===1?'y':'ies'}`;
+}
+
+let timer;
+function schedule(){ clearTimeout(timer); timer = setTimeout(()=>{ render(); saveDraft(); }, 140); }
+function saveDraft(){
+  store.set('tsm.draft', JSON.stringify({ src:$('src').value, title:$('title').value, traveler:$('traveler').value, route:$('route').value, base:$('base').value }));
+}
+
+function setTheme(t){
+  sheetTheme = t; store.set('tsm.theme', t);
+  $('thLight').setAttribute('aria-pressed', t==='light'); $('thDark').setAttribute('aria-pressed', t==='dark');
+  render();
+}
+
+function status(msg){ $('status').textContent = msg; }
+function fileName(){
+  const s = ($('title').value || 'itinerary').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return (s || 'itinerary') + '.png';
+}
+function blob(){ return new Promise(r => canvas.toBlob(r, 'image/png')); }
+
+let downloads = null;
+(async ()=>{
+  try{ downloads = window.claude?.use ? await window.claude.use('downloads') : null; }catch(e){ downloads = null; }
+  if (!downloads){ $('save').disabled = true; $('save').title = 'Saving isn’t available in this view'; status('Right-click or long-press the sheet to save it here.'); }
+})();
+
+$('save').addEventListener('click', async ()=>{
+  if (!downloads) return;
+  status('Preparing PNG…');
+  try{
+    const b = await blob();
+    await downloads.save({ filename: fileName(), data: b });
+    status('Saved.');
+  }catch(e){
+    const c = e && e.code;
+    if (c === 'declined') status('Save cancelled.');
+    else if (c === 'rate_limited') status('A save prompt is already open.');
+    else status('Couldn’t save here. Right-click or long-press the sheet instead.');
+  }
+});
+
+$('copy').addEventListener('click', async ()=>{
+  try{
+    if (!navigator.clipboard || !window.ClipboardItem) throw new Error('no clipboard');
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob() })]);
+    status('Image copied. Paste it into WhatsApp, Teams or email.');
+  }catch(e){
+    status('Copying images isn’t allowed here. Right-click or long-press the sheet instead.');
+  }
+});
+
+$('thLight').addEventListener('click', ()=>setTheme('light'));
+$('thDark').addEventListener('click', ()=>setTheme('dark'));
+$('reset').addEventListener('click', ()=>{ $('src').value = EXAMPLE; schedule(); });
+['src','title','traveler','route','base'].forEach(id => $(id).addEventListener('input', schedule));
+
+// Initial state: restore draft, else the example
+(()=>{
+  let d = null; try{ d = JSON.parse(store.get('tsm.draft') || 'null'); }catch(e){}
+  $('src').value = d?.src || EXAMPLE;
+  if (d){ ['title','traveler','route','base'].forEach(k=>{ if (typeof d[k]==='string') $(k).value = d[k]; }); }
+  setTheme(sheetTheme);
+})();
+</script>
+
+</body></html>
