@@ -1,0 +1,533 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Site Report Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: same two-pane workbench as Trip Sheet Maker — text in, exact PNG preview out; stacks on phones */
+:root{
+  --bg:#EEF1F3; --panel:#FFFFFF; --fg:#131D25; --muted:#5A6A75; --line:#D3DADF;
+  --accent:#C9741F; --focus:#2F6FB0;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D151B; --panel:#141F27; --fg:#E6ECF0; --muted:#8C9CA7; --line:#26343F;
+  --accent:#EFA24A; --focus:#6FA8E0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D151B; --panel:#141F27; --fg:#E6ECF0; --muted:#8C9CA7; --line:#26343F;
+  --accent:#EFA24A; --focus:#6FA8E0; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-inline:16px;display:grid;gap:20px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px}
+header.top h1{font-family:var(--f-display);font-weight:700;font-size:34px;letter-spacing:.01em;margin:0;text-wrap:balance}
+header.top p{margin:0;color:var(--muted);max-width:60ch}
+.grid{display:grid;gap:20px;grid-template-columns:1fr}
+@media (min-width:920px){.grid{grid-template-columns:minmax(360px,440px) 1fr;align-items:start}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;display:grid;gap:14px;min-width:0}
+.panel.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+label.f{display:grid;gap:5px;font-size:12px;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%;text-transform:none;letter-spacing:0}
+textarea{font-family:var(--f-mono);font-size:13px;line-height:1.55;min-height:420px;resize:vertical;white-space:pre;overflow:auto}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.row{grid-template-columns:1fr}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;background:transparent;color:var(--fg);border:0;padding:7px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--panel)}
+.opts{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.opts .lbl{font-family:var(--f-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:600;font-size:15px;border-radius:4px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1A1006}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.link{font:inherit;font-size:13px;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0}
+.status{font-size:13px;color:var(--muted);min-height:1.2em}
+details{font-size:13px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--fg);font-weight:500}
+details ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+code{font-family:var(--f-mono);font-size:12px;background:var(--bg);padding:1px 4px;border-radius:3px}
+.preview{display:grid;gap:10px;min-width:0}
+.preview .bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.preview img{display:block;width:100%;max-width:720px;height:auto;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,0,0,.45);background:var(--panel)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Site Report Maker</h1>
+    <p>Write each day's work as plain text. The sheet on the right is the exact PNG you'll send.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel sticky" aria-label="Report input">
+      <div class="row">
+        <label class="f" for="title">Title<input id="title" type="text" value="Work Report · Lyon"></label>
+        <label class="f" for="by">Prepared by<input id="by" type="text" placeholder="Your name"></label>
+      </div>
+      <div class="row">
+        <label class="f" for="site">Site<input id="site" type="text" value="Lyon, France"></label>
+        <label class="f" for="job">Job<input id="job" type="text" value="Machine installation"></label>
+      </div>
+      <label class="f" for="src">Daily log<textarea id="src" spellcheck="true"></textarea></label>
+      <div class="opts">
+        <span class="lbl">Sheet</span>
+        <div class="seg" role="group" aria-label="Sheet colors">
+          <button type="button" id="thLight" aria-pressed="true">Light</button>
+          <button type="button" id="thDark" aria-pressed="false">Dark</button>
+        </div>
+        <label class="chk" for="hideEmpty"><input type="checkbox" id="hideEmpty"> Hide days with no entries</label>
+        <button type="button" class="link" id="reset">Load example</button>
+      </div>
+      <details>
+        <summary>How lines are read</summary>
+        <ul>
+          <li>A line starting with a weekday starts a new day: <code>Monday 9/3/2026</code>.</li>
+          <li>The first time range under a day is the hours on site: <code>8:30 to 17:35</code> or <code>0830-1735</code>. Hours are totalled.</li>
+          <li>A line starting with <code>#</code> is an issue. Put its status in brackets at the end: <code>(Fixed)</code>, <code>(Fixed, but missing nut)</code>. No bracket means it's still open.</li>
+          <li>Text after <code>*</code> on a line becomes a note under that task.</li>
+          <li>An indented line is a note under the line above it.</li>
+          <li>Anything else is a completed task.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="preview" aria-label="Sheet preview">
+      <div class="actions">
+        <button type="button" class="btn primary" id="save">Save PNG</button>
+        <button type="button" class="btn" id="copy">Copy image</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+      <div class="bar"><span id="meta">Rendering…</span><span>2160 px wide · retina</span></div>
+      <img id="out" alt="Rendered work report sheet">
+      <p class="hint">You can also right-click or long-press the sheet to save or share it.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const EXAMPLE = `Monday 9/3/2026
+8:30 to 17:35
+Site induction and paperwork done
+Electrical wiring inspection and fixing *Customer had assembled and wired the machine
+Fixed two wrong connections
+Inspected the pneumatic connections and connected the missing parts
+# Issue the earthing wire was missing between the control box and the machine body (Fixed, nut fitted Tue)
+Powering up done
+Machine started
+Servo calibration done
+Light curtains aligned
+
+Tuesday 10/3/2026 *Extra hours possible
+08:00 to 18:30
+Fitted the missing earthing nut
+Emergency stops tested on all stations
+Door interlocks tested
+# Door switch on station 2 not responding (Replaced)
+# Pressure drop on the main air line (Fixed Wed, valve replaced by customer)
+   Leak found at the customer's supply valve
+
+Wednesday 11/3/2026 *Extra hours possible
+0800-1700
+Air supply checked after the valve repair
+Camera calibration
+Test run with customer parts *50 parts, 2 rejects
+   Rejects caused by a dirty lens, cleaned and re-run
+
+Thursday 12/3/2026 *Emergency extra hours if needed
+14:00 to 00:30
+Test runs and fine tuning
+Cycle time tuned to 4.2 s
+Operator training *3 operators trained
+❗Emergency stop tripped during a test run (OK, guard sensor re-aligned)
+# Problem: Reject conveyor jams occasionally (Temporary fix, new guide rail to be sent)
+
+Friday 13/3/2026
+08:00 – 13:30
+Final test run with the customer
+Handover meeting and sign-off
+Documentation handed over
+# Customer to confirm network access for remote support
+
+Saturday 14/3/2026 *Reserve day, only if needed
+`;
+
+const $ = id => document.getElementById(id);
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+/* ---------- Parser ---------- */
+const dayRe = /^(mon|tues|wednes|thurs|fri|satur|sun)day\b[,\s]*(?:(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?)?\s*(?:\*\s*(.*))?$/i;
+const hoursRe = /^(\d{1,2})[:.]?(\d{2})\s*(?:hrs?\.?)?\s*(?:to|-|–|—|until)\s*(\d{1,2})[:.]?(\d{2})\s*(?:hrs?\.?)?$/i;
+const issueRe = /^(?:#+|❗|‼|⚠|!)+[️\s]*/u;
+
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+function issueState(status){
+  if (!status) return 'open';
+  if (/\b(but|missing|pending|open|todo|to do|waiting|need|needs|temporar|partly|partial)/i.test(status)) return 'follow';
+  if (/\b(fixed|resolved|done|solved|closed|ok|replaced)\b/i.test(status)) return 'resolved';
+  return 'open';
+}
+
+function parse(text){
+  const days = []; let cur = null, last = null;
+  for (const raw of text.split(/\r?\n/)){
+    const line = raw.replace(/ /g,' ').trim();
+    if (!line) continue;
+    const indented = /^[\s ]{2,}/.test(raw);
+    const dm = line.match(dayRe);
+    if (dm){
+      let date = null;
+      if (dm[2]){
+        let y = dm[4] ? +dm[4] : new Date().getFullYear();
+        if (y < 100) y += 2000;
+        date = { d:+dm[2], m:+dm[3], y };
+      }
+      cur = { name: dm[1].toLowerCase()+'day', date, note:(dm[5]||'').trim(), hours:null, items:[] };
+      days.push(cur); last = null; continue;
+    }
+    if (!cur){ cur = { name:'', date:null, note:'', hours:null, items:[] }; days.push(cur); }
+    const hm = line.match(hoursRe);
+    if (hm && !cur.hours && +hm[1] < 24 && +hm[3] < 24 && +hm[2] < 60 && +hm[4] < 60){
+      const s = +hm[1]*60 + +hm[2]; let e = +hm[3]*60 + +hm[4];
+      if (e < s) e += 1440;
+      cur.hours = { from: hm[1].padStart(2,'0')+':'+hm[2], to: hm[3].padStart(2,'0')+':'+hm[4], mins: e - s };
+      continue;
+    }
+    if (indented && last){ last.notes.push(line); continue; }
+    if (issueRe.test(line)){
+      let t = line.replace(issueRe,'').replace(/^(issue|problem)\b[:\s\-–]*/i,'').trim();
+      let status = '';
+      const pm = t.match(/\(([^()]*)\)\s*$/);
+      if (pm){ status = pm[1].trim(); t = t.slice(0, pm.index).trim(); }
+      last = { kind:'issue', text:cap(t.replace(/\s{2,}/g,' ')), status, state:issueState(status), notes:[], day:cur };
+      cur.items.push(last); continue;
+    }
+    let t = line, notes = [];
+    const star = t.indexOf('*');
+    if (star > 0){ notes.push(t.slice(star+1).trim()); t = t.slice(0, star).trim(); }
+    last = { kind:'task', text:cap(t), notes };
+    cur.items.push(last);
+  }
+  return days;
+}
+
+/* ---------- Sheet palettes ---------- */
+const SHEETS = {
+  light:{ paper:'#FFFFFF', ink:'#121C24', muted:'#5B6B76', faint:'#9AA7B0', rule:'#D6DCE0', accent:'#C26A14', soft:'#FBEBD9', danger:'#B83D28', dangerSoft:'#F8DFD8', good:'#2E7D4F', goodSoft:'#DCEFE3', band:'#121C24', bandInk:'#F6F7F8' },
+  dark: { paper:'#0F1820', ink:'#E8EEF2', muted:'#8B9BA6', faint:'#56656F', rule:'#27353F', accent:'#F0A44B', soft:'#2B2116', danger:'#EE7A63', dangerSoft:'#33201B', good:'#6CC793', goodSoft:'#17281F', band:'#E8EEF2', bandInk:'#0F1820' }
+};
+let sheetTheme = store.get('twr.theme') === 'dark' ? 'dark' : 'light';
+const STATE = {
+  open:    { label:'OPEN',      fg:'danger', bg:'dangerSoft' },
+  follow:  { label:'FOLLOW-UP', fg:'accent', bg:'soft' },
+  resolved:{ label:'RESOLVED',  fg:'good',   bg:'goodSoft' }
+};
+
+const F = {
+  label:'500 17px "IBM Plex Mono", monospace',
+  title:'700 76px "Barlow Condensed", "Arial Narrow", sans-serif',
+  meta:'500 26px "Barlow", sans-serif',
+  statL:'500 14px "IBM Plex Mono", monospace',
+  statV:'700 54px "Barlow Condensed", "Arial Narrow", sans-serif',
+  wd:'700 60px "Barlow Condensed", "Arial Narrow", sans-serif',
+  date:'500 21px "IBM Plex Mono", monospace',
+  hrs:'500 18px "IBM Plex Mono", monospace',
+  dur:'700 34px "Barlow Condensed", "Arial Narrow", sans-serif',
+  item:'500 26px "Barlow", sans-serif',
+  itemB:'600 26px "Barlow", sans-serif',
+  sub:'400 21px "Barlow", sans-serif',
+  chip:'500 14px "IBM Plex Mono", monospace',
+  empty:'400 18px "IBM Plex Mono", monospace',
+  oiDay:'500 17px "IBM Plex Mono", monospace',
+  oi:'600 23px "Barlow", sans-serif',
+  oiS:'400 20px "Barlow", sans-serif',
+  foot:'400 15px "IBM Plex Mono", monospace'
+};
+
+function wrap(ctx, text, maxW){
+  const words = String(text).split(/\s+/); const lines = []; let line = '';
+  for (const w of words){
+    const test = line ? line+' '+w : w;
+    if (ctx.measureText(test).width > maxW && line){ lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+function spaced(ctx, px){ if ('letterSpacing' in ctx) ctx.letterSpacing = px+'px'; }
+function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function dur(m){ return `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`; }
+function dayTag(d){ return (d.name ? d.name.slice(0,3).toUpperCase() : 'DAY') + (d.date ? ` ${String(d.date.d).padStart(2,'0')} ${MON[d.date.m-1].toUpperCase()}` : ''); }
+function fmtRange(days){
+  const ds = days.map(d=>d.date).filter(Boolean);
+  if (!ds.length) return '';
+  const a = ds[0], b = ds[ds.length-1];
+  if (a.d === b.d && a.m === b.m) return `${a.d} ${MON[a.m-1]} ${a.y}`;
+  if (a.m === b.m && a.y === b.y) return `${a.d}–${b.d} ${MON[a.m-1]} ${a.y}`;
+  return `${a.d} ${MON[a.m-1]} – ${b.d} ${MON[b.m-1]} ${b.y}`;
+}
+
+/* ---------- Renderer (measure pass, then draw pass) ---------- */
+const W = 1080, P = 72, LEFT = 190;
+
+function layout(ctx, data, draw){
+  const C = SHEETS[sheetTheme];
+  const RX = P + LEFT, RW = W - P - RX;
+  const allDays = data.days;
+  const reported = allDays.filter(d => d.items.length || d.hours);
+  const shown = data.hideEmpty ? reported : allDays;
+  const totalMins = allDays.reduce((a,d)=>a+(d.hours?d.hours.mins:0),0);
+  const tasks = allDays.reduce((a,d)=>a+d.items.filter(i=>i.kind==='task').length,0);
+  const issues = allDays.flatMap(d=>d.items.filter(i=>i.kind==='issue'));
+  const unresolved = issues.filter(i=>i.state!=='resolved');
+
+  // Header band
+  ctx.font = F.title; const tl = wrap(ctx, data.title || 'Work Report', W - 2*P);
+  const metaParts = [fmtRange(allDays), data.site, data.job, data.by && ('By '+data.by)].filter(Boolean);
+  ctx.font = F.meta;
+  const metaLines = []; { let line = []; let w = 0;
+    metaParts.forEach(m=>{ const mw = ctx.measureText(m).width + (line.length?32:0);
+      if (w + mw > W-2*P && line.length){ metaLines.push(line); line=[]; w=0; }
+      line.push(m); w += ctx.measureText(m).width + (line.length>1?32:0); });
+    if (line.length) metaLines.push(line); }
+  const bandH = 56 + 28 + tl.length*76 + 22 + Math.max(1,metaLines.length)*36 + 44;
+  let y = 56;
+  if (draw){
+    ctx.fillStyle = C.band; ctx.fillRect(0,0,W,bandH);
+    ctx.font = F.label; spaced(ctx,3); ctx.fillStyle = C.accent;
+    ctx.fillText('SITE WORK REPORT', P, y+14); spaced(ctx,0);
+  }
+  y += 28;
+  ctx.font = F.title;
+  tl.forEach(l=>{ y += 76; if (draw){ ctx.fillStyle = C.bandInk; ctx.fillText(l, P, y-8); } });
+  y += 22;
+  if (draw){
+    ctx.font = F.meta;
+    metaLines.forEach((line, li)=>{
+      let x = P;
+      line.forEach((m,i)=>{
+        if (i){ ctx.fillStyle = C.accent; ctx.fillText('·', x+8, y+20+li*36); x += 32; }
+        ctx.fillStyle = C.bandInk; ctx.globalAlpha = (li===0 && i===0) ? 1 : .78;
+        ctx.fillText(m, x, y+20+li*36); x += ctx.measureText(m).width; ctx.globalAlpha = 1;
+      });
+    });
+  }
+  y = bandH + 40;
+
+  // Summary strip
+  const cells = [
+    ['DAYS REPORTED', `${reported.length} / ${allDays.length}`, C.ink],
+    ['HOURS ON SITE', totalMins ? dur(totalMins) : '—', C.ink],
+    ['TASKS DONE', String(tasks), C.ink],
+    ['OPEN ISSUES', String(unresolved.length), unresolved.length ? (unresolved.some(i=>i.state==='open') ? C.danger : C.accent) : C.good]
+  ];
+  const cw = (W - 2*P) / cells.length;
+  if (draw){
+    ctx.fillStyle = C.ink; ctx.fillRect(P, y, W-2*P, 3);
+    cells.forEach((c,i)=>{
+      const x = P + i*cw + (i?22:0);
+      if (i){ ctx.fillStyle = C.rule; ctx.fillRect(P+i*cw, y+20, 1.5, 84); }
+      ctx.font = F.statL; spaced(ctx,2); ctx.fillStyle = C.muted; ctx.fillText(c[0], x, y+38); spaced(ctx,0);
+      ctx.font = F.statV; ctx.fillStyle = c[2]; ctx.fillText(c[1], x, y+96);
+    });
+    ctx.fillStyle = C.rule; ctx.fillRect(P, y+122, W-2*P, 1.5);
+  }
+  y += 122 + 40;
+
+  // Days
+  shown.forEach((day, di)=>{
+    const top = y;
+    const empty = !day.items.length && !day.hours;
+    if (draw){
+      ctx.fillStyle = empty ? C.faint : C.ink; ctx.font = F.wd;
+      ctx.fillText(day.name ? day.name.slice(0,3).toUpperCase() : 'DAY', P, top+48);
+      if (day.date){
+        ctx.font = F.date; ctx.fillStyle = empty ? C.faint : C.muted;
+        ctx.fillText(`${String(day.date.d).padStart(2,'0')} ${MON[day.date.m-1].toUpperCase()}`, P, top+84);
+      }
+      if (day.hours){
+        ctx.font = F.hrs; ctx.fillStyle = C.muted;
+        ctx.fillText(`${day.hours.from}–${day.hours.to}`, P, top+122);
+        ctx.font = F.dur; ctx.fillStyle = C.accent;
+        ctx.fillText(dur(day.hours.mins), P, top+160);
+      }
+    }
+    let ry = top;
+    if (day.note){
+      ctx.font = F.sub; const nl = wrap(ctx, day.note, RW);
+      if (draw){ ctx.fillStyle = C.muted; nl.forEach((l,i)=>ctx.fillText(l, RX, ry+24+i*28)); }
+      ry += nl.length*28 + 16;
+    }
+    if (empty){
+      if (draw){ ctx.font = F.empty; spaced(ctx,1.5); ctx.fillStyle = C.faint; ctx.fillText('NOT YET REPORTED', RX, ry+40); spaced(ctx,0); }
+      ry += 52;
+    }
+    day.items.forEach((it, ii)=>{
+      if (it.kind === 'issue'){
+        const S = STATE[it.state], pad = 18, ix = RX - 6, iw = W - P - ix;
+        const tx = ix + pad, tw = iw - pad*2;
+        ctx.font = F.itemB; const tl = wrap(ctx, it.text, tw);
+        ctx.font = F.sub; const sl = it.status ? wrap(ctx, 'Status: '+it.status, tw) : [];
+        const nl = it.notes.flatMap(n=>wrap(ctx, n, tw));
+        const h = pad + 22 + tl.length*34 + (sl.length+nl.length)*28 + (sl.length||nl.length ? 6 : 0) + pad - 6;
+        if (draw){
+          ctx.fillStyle = C[S.bg]; rrect(ctx, ix, ry, iw, h, 5); ctx.fill();
+          ctx.font = F.chip; spaced(ctx,2); ctx.fillStyle = C[S.fg];
+          ctx.fillText('ISSUE · '+S.label, tx, ry+pad+12); spaced(ctx,0);
+          ctx.font = F.itemB; ctx.fillStyle = C.ink;
+          tl.forEach((l,i)=>ctx.fillText(l, tx, ry+pad+22+26+i*34));
+          ctx.font = F.sub; let sy = ry+pad+22+tl.length*34+6+20;
+          ctx.fillStyle = C[S.fg]; sl.forEach(l=>{ ctx.fillText(l, tx, sy); sy += 28; });
+          ctx.fillStyle = C.muted; nl.forEach(l=>{ ctx.fillText(l, tx, sy); sy += 28; });
+        }
+        ry += h;
+      } else {
+        const tx = RX + 38, tw = W - P - tx;
+        ctx.font = F.item; const tl = wrap(ctx, it.text, tw);
+        ctx.font = F.sub; const nl = it.notes.flatMap(n=>wrap(ctx, 'Note: '+n, tw));
+        const h = tl.length*34 + nl.length*28 + (nl.length ? 4 : 0);
+        if (draw){
+          ctx.strokeStyle = C.good; ctx.lineWidth = 3; ctx.lineCap='round'; ctx.lineJoin='round';
+          ctx.beginPath(); ctx.moveTo(RX+2, ry+17); ctx.lineTo(RX+9, ry+24); ctx.lineTo(RX+22, ry+9); ctx.stroke();
+          ctx.font = F.item; ctx.fillStyle = C.ink;
+          tl.forEach((l,i)=>ctx.fillText(l, tx, ry+26+i*34));
+          ctx.font = F.sub; ctx.fillStyle = C.muted;
+          nl.forEach((l,i)=>ctx.fillText(l, tx, ry+tl.length*34+4+20+i*28));
+        }
+        ry += h;
+      }
+      ry += (ii < day.items.length-1 ? 14 : 0);
+    });
+    y = Math.max(ry, top + (day.hours ? 170 : (empty ? 92 : 100))) + (empty ? 24 : 40);
+    if (di < shown.length-1){
+      if (draw){ ctx.fillStyle = C.rule; ctx.fillRect(P, y, W-2*P, 1.5); }
+      y += empty ? 32 : 40;
+    }
+  });
+  if (!shown.length){
+    if (draw){ ctx.font = F.empty; ctx.fillStyle = C.faint; ctx.fillText('NO DAYS REPORTED YET', P, y+30); }
+    y += 60;
+  }
+
+  // Footer
+  y += 12;
+  if (draw){
+    ctx.fillStyle = C.ink; ctx.fillRect(P, y, W-2*P, 3);
+    ctx.font = F.foot; ctx.fillStyle = C.muted; spaced(ctx,1);
+    const now = new Date();
+    ctx.fillText(`STATUS AS OF ${now.getDate()} ${MON[now.getMonth()].toUpperCase()} ${now.getFullYear()}`, P, y+36);
+    ctx.textAlign = 'right'; ctx.fillText('HOURS ARE TIME ON SITE', W-P, y+36); ctx.textAlign='left';
+    spaced(ctx,0);
+  }
+  return y + 72;
+}
+
+const canvas = document.createElement('canvas');
+const SCALE = 2;
+let fontsReady = null;
+function loadFonts(){
+  if (fontsReady) return fontsReady;
+  const faces = ['700 60px "Barlow Condensed"','500 26px "Barlow"','600 26px "Barlow"','400 21px "Barlow"','500 18px "IBM Plex Mono"','400 15px "IBM Plex Mono"'];
+  fontsReady = Promise.race([
+    Promise.all(faces.map(f=>document.fonts.load(f))).catch(()=>{}),
+    new Promise(r=>setTimeout(r, 2500))
+  ]);
+  return fontsReady;
+}
+
+function readData(){
+  return {
+    title: $('title').value.trim(), by: $('by').value.trim(),
+    site: $('site').value.trim(), job: $('job').value.trim(),
+    hideEmpty: $('hideEmpty').checked,
+    days: parse($('src').value)
+  };
+}
+
+async function render(){
+  await loadFonts();
+  const data = readData();
+  const H = layout(canvas.getContext('2d'), data, false);
+  canvas.width = W*SCALE; canvas.height = Math.ceil(H)*SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(SCALE,0,0,SCALE,0,0);
+  ctx.fillStyle = SHEETS[sheetTheme].paper; ctx.fillRect(0,0,W,H);
+  layout(ctx, data, true);
+  $('out').src = canvas.toDataURL('image/png');
+  const iss = data.days.reduce((a,d)=>a+d.items.filter(i=>i.kind==='issue').length,0);
+  const rep = data.days.filter(d=>d.items.length||d.hours).length;
+  $('meta').textContent = `${rep} of ${data.days.length} day${data.days.length===1?'':'s'} reported · ${iss} issue${iss===1?'':'s'}`;
+}
+
+let timer;
+function schedule(){ clearTimeout(timer); timer = setTimeout(()=>{ render(); saveDraft(); }, 140); }
+function saveDraft(){
+  store.set('twr.draft', JSON.stringify({ src:$('src').value, title:$('title').value, by:$('by').value, site:$('site').value, job:$('job').value, hideEmpty:$('hideEmpty').checked }));
+}
+function setTheme(t){
+  sheetTheme = t; store.set('twr.theme', t);
+  $('thLight').setAttribute('aria-pressed', t==='light'); $('thDark').setAttribute('aria-pressed', t==='dark');
+  render();
+}
+function status(msg){ $('status').textContent = msg; }
+function fileName(){
+  const s = ($('title').value || 'work-report').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const n = new Date();
+  return (s || 'work-report') + `-${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}.png`;
+}
+function blob(){ return new Promise(r => canvas.toBlob(r, 'image/png')); }
+
+let downloads = null;
+(async ()=>{
+  try{ downloads = window.claude?.use ? await window.claude.use('downloads') : null; }catch(e){ downloads = null; }
+  if (!downloads){ $('save').disabled = true; $('save').title = 'Saving isn’t available in this view'; status('Right-click or long-press the sheet to save it here.'); }
+})();
+
+$('save').addEventListener('click', async ()=>{
+  if (!downloads) return;
+  status('Preparing PNG…');
+  try{
+    await downloads.save({ filename: fileName(), data: await blob() });
+    status('Saved.');
+  }catch(e){
+    const c = e && e.code;
+    if (c === 'declined') status('Save cancelled.');
+    else if (c === 'rate_limited') status('A save prompt is already open.');
+    else status('Couldn’t save here. Right-click or long-press the sheet instead.');
+  }
+});
+$('copy').addEventListener('click', async ()=>{
+  try{
+    if (!navigator.clipboard || !window.ClipboardItem) throw new Error('no clipboard');
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob() })]);
+    status('Image copied. Paste it into WhatsApp, Teams or email.');
+  }catch(e){
+    status('Copying images isn’t allowed here. Right-click or long-press the sheet instead.');
+  }
+});
+
+$('thLight').addEventListener('click', ()=>setTheme('light'));
+$('thDark').addEventListener('click', ()=>setTheme('dark'));
+$('reset').addEventListener('click', ()=>{ $('src').value = EXAMPLE; schedule(); });
+['src','title','by','site','job'].forEach(id => $(id).addEventListener('input', schedule));
+$('hideEmpty').addEventListener('change', schedule);
+
+(()=>{
+  let d = null; try{ d = JSON.parse(store.get('twr.draft') || 'null'); }catch(e){}
+  $('src').value = d?.src || EXAMPLE;
+  if (d){ ['title','by','site','job'].forEach(k=>{ if (typeof d[k]==='string') $(k).value = d[k]; }); $('hideEmpty').checked = !!d.hideEmpty; }
+  setTheme(sheetTheme);
+})();
+</script>
+
+</body></html>
