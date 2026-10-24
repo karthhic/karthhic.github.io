@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karthhic R Ponnalagi · R&D Engineer</title>
+<meta name="description" content="Karthhic R Ponnalagi, R&D engineer in industrial automation. PLC software, commissioning and hands-on prototyping in Finland.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<style>
+/* Palette taken from control-cabinet wiring: cabinet grey, DC control blue, interlock orange, earth green */
+:root{
+  --cabinet:#E3E4E0;
+  --panel:#F1F1EE;
+  --ink:#1C2126;
+  --muted:#5A616A;
+  --rule:#BFC2BD;
+  --dc:#1D4FA0;
+  --dc-soft:#1D4FA022;
+  --interlock:#D26A00;
+  --earth:#2F8740;
+  --font:"Archivo", "Helvetica Neue", Arial, system-ui, sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --cabinet:#1B1F24;--panel:#23282E;--ink:#E6E7E3;--muted:#9AA1A9;--rule:#3A4048;
+    --dc:#6E9BEA;--dc-soft:#6E9BEA26;--interlock:#F08A25;--earth:#5DB36C;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --cabinet:#1B1F24;--panel:#23282E;--ink:#E6E7E3;--muted:#9AA1A9;--rule:#3A4048;
+  --dc:#6E9BEA;--dc-soft:#6E9BEA26;--interlock:#F08A25;--earth:#5DB36C;color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px)}
+body{margin:0;background:var(--cabinet);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.55;font-variation-settings:"wdth" 100;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--dc)}
+:focus-visible{outline:2px solid var(--interlock);outline-offset:3px;border-radius:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(20px,4vw,40px)}
+
+/* Header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--cabinet) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:56px;gap:16px}
+.mark{font-weight:800;font-variation-settings:"wdth" 125;letter-spacing:-.01em;text-decoration:none}
+nav{display:flex;gap:clamp(12px,3vw,28px);font-size:15px}
+nav a{text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--ink)}
+
+/* Hero */
+.hero{padding-top:clamp(40px,8vw,96px);padding-bottom:clamp(48px,8vw,88px)}
+.rung{width:100%;height:auto;display:block;overflow:visible}
+.rung .base{stroke:var(--rule);stroke-width:3;fill:none;stroke-linecap:square}
+.rung .rail{stroke:var(--ink);stroke-width:4}
+.rung .power{stroke:var(--dc);stroke-width:5;fill:none;stroke-linecap:round}
+.rung .contact{stroke:var(--ink);stroke-width:4;fill:none}
+.rung .coil{stroke:var(--ink);stroke-width:4;fill:none}
+.rung .coil-fill{fill:var(--dc);opacity:0;transform-box:fill-box;transform-origin:center}
+.rung text{font-family:var(--font);font-size:15px;fill:var(--muted);font-variation-settings:"wdth" 88}
+.rung .coil-label{fill:var(--ink);font-weight:700}
+h1{font-size:clamp(44px,9.2vw,124px);line-height:.92;margin:clamp(24px,4vw,44px) 0 0;font-weight:850;font-variation-settings:"wdth" 118;letter-spacing:-.025em}
+h1 .line{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.08em}
+.hero-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px 48px;align-items:end;margin-top:clamp(20px,3vw,36px)}
+.lede{max-width:58ch;font-size:clamp(18px,2vw,21px);color:var(--ink);margin:0}
+.lede span{color:var(--muted)}
+.cycle{font:inherit;font-size:15px;display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer;white-space:nowrap}
+.cycle:hover{background:var(--ink);color:var(--cabinet)}
+.lamp{width:10px;height:10px;border-radius:50%;background:var(--earth);box-shadow:0 0 0 3px color-mix(in srgb,var(--earth) 25%,transparent)}
+.cycle[aria-pressed="false"] .lamp{background:var(--rule);box-shadow:none}
+
+/* Section scaffolding */
+section{padding:clamp(56px,9vw,112px) 0;border-top:1px solid var(--rule)}
+.sec-head{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:24px 48px;margin-bottom:clamp(28px,5vw,56px)}
+h2{font-size:clamp(30px,4.4vw,52px);line-height:1;margin:0;font-weight:800;font-variation-settings:"wdth" 112;letter-spacing:-.02em}
+.sec-head p{margin:0;color:var(--muted);max-width:60ch;align-self:end}
+
+/* Experience: the wire energises each terminal as you scroll */
+.timeline{position:relative;list-style:none;margin:0;padding:0 0 0 44px}
+.wire{position:absolute;left:11px;top:10px;bottom:10px;width:3px;background:var(--rule);border-radius:2px}
+.wire i{position:absolute;inset:0;background:var(--dc);transform-origin:top;transform:scaleY(0);border-radius:2px}
+.job{position:relative;display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:6px 40px;padding:0 0 clamp(28px,4vw,44px)}
+.job::before{content:"";position:absolute;left:-40px;top:6px;width:15px;height:15px;border-radius:3px;border:3px solid var(--rule);background:var(--cabinet);transition:border-color .3s,background-color .3s}
+.job.live::before{border-color:var(--dc);background:var(--dc)}
+.when{color:var(--muted);font-size:15px;font-variant-numeric:tabular-nums;padding-top:2px}
+.job h3{margin:0;font-size:21px;line-height:1.25;font-weight:700;font-variation-settings:"wdth" 100}
+.job .co{color:var(--muted);font-weight:400}
+.job p{margin:6px 0 0;max-width:62ch;color:var(--ink)}
+
+/* Skills: rotary selector switch */
+.skills{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:40px 48px;align-items:start}
+.selector{display:grid;justify-items:center;gap:22px}
+.dial{position:relative;width:180px;height:180px;border-radius:50%;background:var(--panel);border:1.5px solid var(--rule)}
+.dial .ticks{position:absolute;inset:0}
+.knob{position:absolute;inset:34px;border-radius:50%;background:var(--ink);box-shadow:0 6px 0 color-mix(in srgb,var(--ink) 25%,transparent)}
+.knob::after{content:"";position:absolute;left:50%;top:10px;width:6px;height:36px;margin-left:-3px;border-radius:3px;background:var(--interlock)}
+.positions{display:grid;gap:6px;width:100%}
+.positions button{font:inherit;text-align:left;display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border:1.5px solid transparent;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+.positions button:hover{color:var(--ink);border-color:var(--rule)}
+.positions button[aria-selected="true"]{color:var(--ink);border-color:var(--ink);font-weight:650}
+.positions small{font-variant-numeric:tabular-nums;opacity:.7}
+.terminals{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px;min-height:180px;align-content:flex-start}
+.terminals li{padding:10px 16px 10px 14px;background:var(--panel);border-left:5px solid var(--dc);border-radius:3px;font-size:17px;font-variation-settings:"wdth" 92}
+.terminals.g1 li{border-left-color:var(--dc)}
+.terminals.g2 li{border-left-color:var(--interlock)}
+.terminals.g3 li{border-left-color:var(--earth)}
+.terminals.g4 li{border-left-color:var(--ink)}
+
+/* Projects */
+.projects{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:0 48px}
+.project{padding:24px 0;border-top:1.5px solid var(--ink)}
+.project h3{margin:0;font-size:23px;line-height:1.2;font-weight:750;font-variation-settings:"wdth" 104}
+.project .from{margin:4px 0 12px;color:var(--interlock);font-size:15px;font-weight:600}
+.project p{margin:0}
+.project .role{margin-top:10px;color:var(--muted);font-size:15px}
+
+/* Education + extras */
+.edu{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:40px 64px}
+.degree{padding:0 0 28px}
+.degree h3{margin:0;font-size:21px;font-weight:700}
+.degree .meta{color:var(--muted);font-size:15px;margin:2px 0 8px}
+.degree p{margin:0}
+.degree em{font-style:normal;color:var(--muted)}
+.extras dl{margin:0;display:grid;gap:22px}
+.extras dt{font-weight:700;margin-bottom:4px}
+.extras dd{margin:0;color:var(--muted)}
+
+/* Contact */
+.contact{padding-bottom:clamp(64px,10vw,120px)}
+.email{display:block;font-size:clamp(28px,6.4vw,84px);line-height:1;font-weight:800;font-variation-settings:"wdth" 110;letter-spacing:-.02em;text-decoration:none;margin:0 0 28px;overflow-wrap:anywhere;min-height:1em}
+.contact-row{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
+.btn{font:inherit;font-size:15px;padding:10px 18px;border-radius:999px;border:1.5px solid var(--ink);background:var(--ink);color:var(--cabinet);cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--dc);border-color:var(--dc);color:#fff}
+.contact-row a:not(.btn){color:var(--muted)}
+footer{border-top:1px solid var(--rule);padding:24px 0;color:var(--muted);font-size:14px}
+
+@media (max-width:760px){
+  .hero-foot,.sec-head,.job,.skills,.edu{grid-template-columns:minmax(0,1fr)}
+  .job{gap:2px}
+  nav a.opt{display:none}
+  .rung text{font-size:30px}
+  .cycle{justify-self:start}
+  .selector{grid-template-columns:auto minmax(0,1fr);justify-items:start;align-items:center}
+  .dial{width:120px;height:120px}
+  .knob{inset:22px}
+  .knob::after{top:6px;height:24px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="mark" href="#top">KRP</a>
+    <nav aria-label="Sections">
+      <a href="#experience">Experience</a>
+      <a href="#skills">Skills</a>
+      <a class="opt" href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero wrap">
+    <!-- One ladder-logic rung: three input contacts in series drive the output coil -->
+    <svg class="rung" viewBox="0 0 1000 170" role="img" aria-label="Ladder logic rung: sensors, networks and prototyping contacts energise the output coil">
+      <line class="rail draw" x1="12" y1="18" x2="12" y2="150"/>
+      <line class="rail draw" x1="988" y1="18" x2="988" y2="150"/>
+      <!-- wires -->
+      <path class="base draw" d="M12 84 H160"/>
+      <path class="base draw" d="M200 84 H390"/>
+      <path class="base draw" d="M430 84 H620"/>
+      <path class="base draw" d="M660 84 H800"/>
+      <path class="base draw" d="M860 84 H988"/>
+      <!-- contacts -->
+      <g class="contact c1"><path class="draw" d="M160 58 V110"/><path class="draw" d="M200 58 V110"/></g>
+      <g class="contact c2"><path class="draw" d="M390 58 V110"/><path class="draw" d="M430 58 V110"/></g>
+      <g class="contact c3"><path class="draw" d="M620 58 V110"/><path class="draw" d="M660 58 V110"/></g>
+      <!-- coil -->
+      <circle class="coil-fill" cx="830" cy="84" r="13"/>
+      <path class="coil draw" d="M816 60 A30 30 0 0 0 816 108"/>
+      <path class="coil draw" d="M844 60 A30 30 0 0 1 844 108"/>
+      <!-- power flow, drawn after the rung -->
+      <path class="power p1" d="M12 84 H160"/>
+      <path class="power p2" d="M200 84 H390"/>
+      <path class="power p3" d="M430 84 H620"/>
+      <path class="power p4" d="M660 84 H800"/>
+      <path class="power p5" d="M860 84 H988"/>
+      <text x="180" y="138" text-anchor="middle" class="tag">Sensors</text>
+      <text x="410" y="138" text-anchor="middle" class="tag">Networks</text>
+      <text x="640" y="138" text-anchor="middle" class="tag">Prototyping</text>
+      <text x="830" y="40" text-anchor="middle" class="tag coil-label">Build</text>
+    </svg>
+
+    <h1 aria-label="Karthhic R Ponnalagi"><span class="line" aria-hidden="true">Karthhic R</span><span class="line" aria-hidden="true">Ponnalagi</span></h1>
+
+    <div class="hero-foot">
+      <p class="lede">R&amp;D engineer in industrial automation. I write PLC software, commission machines on site, and prototype the hardware around them. <span>Based in Finland, working at Atekniikka Oy in Helsinki.</span></p>
+      <button class="cycle" type="button" aria-pressed="true"><span class="lamp" aria-hidden="true"></span><span class="cycle-label">Cycle power</span></button>
+    </div>
+  </div>
+
+  <section id="experience">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Experience</h2>
+        <p>Ten years across Finnish automation companies, from gantry robots in a tyre plant to ALD tools and Siemens PLC systems.</p>
+      </div>
+      <ol class="timeline" id="jobs">
+        <li class="wire" aria-hidden="true"><i></i></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Skills</h2>
+        <p>Turn the selector to switch between groups.</p>
+      </div>
+      <div class="skills">
+        <div class="selector">
+          <div class="dial" aria-hidden="true">
+            <svg class="ticks" viewBox="0 0 180 180"></svg>
+            <div class="knob"></div>
+          </div>
+          <div class="positions" role="tablist" aria-label="Skill groups"></div>
+        </div>
+        <ul class="terminals g1" id="terminals" role="tabpanel" aria-live="polite"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Projects</h2>
+        <p>Prototypes and systems built at university, for clients, and in my own workshop with a 3D printer and laser cutter.</p>
+      </div>
+      <div class="projects" id="projectList"></div>
+    </div>
+  </section>
+
+  <section id="education">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Education</h2>
+        <p>From a diploma in instrumentation and control to a master's in factory automation.</p>
+      </div>
+      <div class="edu">
+        <div id="eduList"></div>
+        <div class="extras">
+          <dl>
+            <div><dt>Languages</dt><dd id="langs"></dd></div>
+            <div><dt>Licences</dt><dd id="lic"></dd></div>
+            <div><dt>Travel</dt><dd id="travel"></dd></div>
+            <div><dt>Outside work</dt><dd id="hobbies"></dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <div class="sec-head"><h2>Contact</h2><p>Open to automation, controls and R&amp;D roles.</p></div>
+      <a class="email" id="email" href="mailto:karthhic@gmail.com">karthhic@gmail.com</a>
+      <div class="contact-row">
+        <button class="btn" type="button" id="copy">Copy email</button>
+        <a href="tel:+358444935596">+358 44 493 5596</a>
+        <a href="https://github.com/karthhic" rel="noopener" target="_blank">GitHub</a>
+        <a href="https://www.linkedin.com/in/karthhic" rel="noopener" target="_blank">LinkedIn</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">Karthhic R Ponnalagi · Vantaa, Finland</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@4.5.0/dist/bundles/anime.umd.min.js"></script>
+<script>
+const DATA = {
+  experience: [
+    {t:"R&D Engineer",c:"Atekniikka Oy",l:"Helsinki",d:"Apr 2024 – present",x:"Siemens PLC software, new feature planning, remote connections, P&ID and electrical diagram changes, commissioning, installation, on-site and remote support, documentation."},
+    {t:"Automation Engineer",c:"Beneq Oy",l:"Espoo",d:"Dec 2021 – Jan 2024",x:"PLC software in structured text, ALD tool troubleshooting, drive and component configuration, product R&D, commissioning and site support."},
+    {t:"Product Developer",c:"Optolevel Oy",l:"Nokia",d:"Mar 2021 – Nov 2021",x:"Product development and prototyping, new features written in assembly, hardware change planning with lean methods."},
+    {t:"Automation Engineer, fixed term",c:"Quattrotec Oy",l:"Valkeakoski",d:"Nov 2020 – Jan 2021",x:"TIA Portal setup, hardware configuration, device naming and tag generation from Excel, PLC program for a hammermill module, thin client setup."},
+    {t:"IoT Developer",c:"Loopshore Oy",l:"Tampere",d:"Feb 2019 – Nov 2019",x:"Rapid prototyping of concept designs, IoT device development, 3D-printed cases and mechanics."},
+    {t:"Freelance Product Developer",c:"Kenzen Oy",l:"Tampere",d:"Jul 2018 – Feb 2019",x:"Consultant and IoT developer for an automated multi-sense shower system shown at ISH 2019, Messe Frankfurt."},
+    {t:"Automation Engineer",c:"Wisematic Oy",l:"Tampere",d:"Jan 2018 – Jun 2018",x:"Beckhoff PLC, sensors, 3D measurement cameras and drive units. Operator UIs in InduSoft and LabVIEW."},
+    {t:"Automation Engineer, summer trainee",c:"Cimcorp Oy",l:"Ulvila",d:"May 2016 – Aug 2016",x:"PLC program changes, UI in FactoryTalk View, trials of Raspberry Pi in an industrial environment."},
+    {t:"Summer Trainee",c:"Cimcorp Oy",l:"Ulvila",d:"Jun 2015 – Aug 2015",x:"Server assembly, wireless access points, switch and router firmware updates, UI backups."},
+    {t:"Support Engineer",c:"Cimcorp Oy",l:"Medak, India",d:"Oct 2012 – Sep 2013",x:"Maintained tyre production machines: conveyors, MBR 700 gantry robots, press loaders, HBW cranes and KUKA robots."}
+  ],
+  skills: {
+    "Industrial & automation":["Automation","Beckhoff TwinCAT","Studio 5000","WinCC","TIA Portal","Commissioning","Machine vision","LMI 3D scanner","P&ID diagrams"],
+    "Programming":["C","Python","JavaScript","Assembly","Bash / shell","SQL"],
+    "Design & CAD":["CAD drawings","CATIA","Fusion 360","AutoCAD","3D modelling","Electrical diagrams"],
+    "Tools & methods":["Project management","Agile","Project planning","Documentation","Linux","Microcontrollers","Product development","Microsoft 365","Electronics","Leadership"]
+  },
+  projects: [
+    {n:"Multi-sense holistic shower",f:"Kenzen Oy, ISH Frankfurt",x:"Music, fragrance and RGB lighting synchronised and fully automated, running 9 to 5 for a full expo week with no human intervention.",r:"System architecture, wireless microcontrollers and server programming"},
+    {n:"Self-powered IoT flow meter",f:"Demola, Coheros Oy",x:"Remote flow measurement powered by its own hydro generator, reporting over LoRaWAN. Prototype built and delivered.",r:"Component selection, software, testing and demo"},
+    {n:"Demo factory, Festo MPS 512-FMS",f:"Tampere University of Technology",x:"Production line with 7 Siemens PLCs and a Mitsubishi RV-2AJ robot, programmed with TIA Portal and RT Toolbox.",r:"Siemens PLC configuration and robot programming"},
+    {n:"Laser welding unit",f:"University, Valmet Automotive",x:"Laser welding robot for precision battery terminal welds, with conveyor and robot motion designed in CATIA.",r:"Conveyor system model for battery transfer"},
+    {n:"Smart home system",f:"Personal",x:"Lamps, RGB lights and heater respond to temperature, humidity and presence. Intrusion alerts go to my phone over MQTT.",r:"Hardware and software, end to end"},
+    {n:"Crowd tracker for tourism",f:"Demola Future Expert",x:"IoT devices estimate how busy public areas are without identifying anyone, to guide visitors and sanitising schedules.",r:"Device concept, prototyping and programming"}
+  ],
+  education: [
+    {g:"Master's in Automation Engineering",i:"Tampere University of Technology",d:"2014 – 2018",m:"Extended major in factory automation and industrial informatics.",t:"A redundant Zigbee communication mechanism for avoiding collision in a monorail system"},
+    {g:"Bachelor's in Electrical & Electronics Engineering",i:"Anna University, India",d:"2006 – 2011",m:"",t:"A digital three-phase converter for efficient motor speed regulation"},
+    {g:"Diploma in Instrumentation & Control",i:"Annamalai Polytechnic, India",d:"2002 – 2005",m:"",t:"PLC-based vending machine"}
+  ],
+  languages:"English, Finnish (Suomi), Tamil, Telugu, Kannada, Hindi",
+  licences:"Electrical Safety Card SFS 6002. Driving licence A and B.",
+  travel:"US B1/B2 visa and China R visa, both valid to 2033",
+  hobbies:"Archery, yoga, cooking, DIY electronics, 3D modelling and printing"
+};
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+/* ---- Render content ---- */
+$("#jobs").insertAdjacentHTML("beforeend", DATA.experience.map(j =>
+  `<li class="job"><div class="when">${j.d}</div><div><h3>${esc(j.t)} <span class="co">at ${esc(j.c)}, ${esc(j.l)}</span></h3><p>${esc(j.x)}</p></div></li>`).join(""));
+$("#projectList").innerHTML = DATA.projects.map(p =>
+  `<article class="project"><h3>${esc(p.n)}</h3><p class="from">${esc(p.f)}</p><p>${esc(p.x)}</p><p class="role">My part: ${esc(p.r)}</p></article>`).join("");
+$("#eduList").innerHTML = DATA.education.map(e =>
+  `<div class="degree"><h3>${esc(e.g)}</h3><p class="meta">${esc(e.i)}, ${e.d}</p><p>${e.m?esc(e.m)+" ":""}<em>Thesis:</em> ${esc(e.t)}</p></div>`).join("");
+$("#langs").textContent = DATA.languages;
+$("#lic").textContent = DATA.licences;
+$("#travel").textContent = DATA.travel;
+$("#hobbies").textContent = DATA.hobbies;
+
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const A = window.anime;
+const hasAnime = !!(A && A.animate);
+
+/* ---- Skills selector ---- */
+const groups = Object.keys(DATA.skills);
+const angles = [-60,-20,20,60];
+const ticks = $(".ticks");
+angles.forEach(a => {
+  const r = a*Math.PI/180, x1 = 90+Math.sin(r)*72, y1 = 90-Math.cos(r)*72, x2 = 90+Math.sin(r)*84, y2 = 90-Math.cos(r)*84;
+  ticks.insertAdjacentHTML("beforeend", `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="color:var(--muted)"/>`);
+});
+const positions = $(".positions");
+positions.innerHTML = groups.map((g,i) =>
+  `<button role="tab" type="button" aria-selected="${i===0}" data-i="${i}" tabindex="${i===0?0:-1}"><span>${esc(g)}</span><small>${DATA.skills[g].length}</small></button>`).join("");
+const knob = $(".knob"), term = $("#terminals");
+let current = -1;
+function selectGroup(i, animateIt=true){
+  if (i === current) return;
+  current = i;
+  $$("button", positions).forEach((b,j) => { b.setAttribute("aria-selected", j===i); b.tabIndex = j===i?0:-1; });
+  term.className = "terminals g"+(i+1);
+  term.innerHTML = DATA.skills[groups[i]].map(s => `<li>${esc(s)}</li>`).join("");
+  if (hasAnime && animateIt && !reduced){
+    A.animate(knob, {rotate: angles[i], duration: 900, ease: "outElastic(1, .55)"});
+    A.animate($$("li", term), {opacity:[0,1], translateX:[-14,0], duration:420, delay:A.stagger(40), ease:"outQuart"});
+  } else {
+    knob.style.transform = `rotate(${angles[i]}deg)`;
+  }
+}
+positions.addEventListener("click", e => { const b = e.target.closest("button"); if (b) selectGroup(+b.dataset.i); });
+positions.addEventListener("keydown", e => {
+  const d = {ArrowDown:1,ArrowRight:1,ArrowUp:-1,ArrowLeft:-1}[e.key];
+  if (!d) return;
+  e.preventDefault();
+  const n = (current + d + groups.length) % groups.length;
+  selectGroup(n); $$("button", positions)[n].focus();
+});
+selectGroup(0, false);
+
+/* ---- Copy email ---- */
+$("#copy").addEventListener("click", async e => {
+  const b = e.currentTarget;
+  try { await navigator.clipboard.writeText("karthhic@gmail.com"); b.textContent = "Copied"; }
+  catch { b.textContent = "Select the address above to copy"; }
+  setTimeout(() => b.textContent = "Copy email", 2000);
+});
+
+/* ---- Motion ---- */
+const cycleBtn = $(".cycle");
+function staticState(on=true){
+  $$(".job").forEach(j => j.classList.add("live"));
+  $(".wire i").style.transform = "scaleY(1)";
+  $(".coil-fill").style.opacity = on ? .9 : 0;
+  $$(".power").forEach(p => p.style.opacity = on ? 1 : 0);
+}
+
+if (!hasAnime || reduced){
+  staticState(true);
+  cycleBtn.addEventListener("click", () => {
+    const on = cycleBtn.getAttribute("aria-pressed") !== "true";
+    cycleBtn.setAttribute("aria-pressed", on);
+    $(".coil-fill").style.opacity = on ? .9 : 0;
+    $$(".power").forEach(p => p.style.opacity = on ? 1 : 0);
+    $(".cycle-label").textContent = on ? "Cycle power" : "Power on";
+  });
+} else {
+  const { animate, createTimeline, stagger, svg, splitText, onScroll } = A;
+
+  /* Name split into characters */
+  const lines = $$("h1 .line");
+  const chars = lines.flatMap(l => splitText(l, {chars:true}).chars);
+  A.utils.set(chars, {translateY:"110%"});
+
+  /* Power flow segments */
+  const power = [1,2,3,4,5].map(n => svg.createDrawable(".power.p"+n)[0]);
+  const contactsOf = n => $$(`.contact.c${n} path`);
+
+  function powerOn(tl, at){
+    [1,2,3,4].forEach((n,i) => {
+      tl.add(power[i], {draw:["0 0","0 1"], duration:260, ease:"linear"}, i===0 ? at : "<");
+      if (n < 4) tl.add(contactsOf(n), {stroke:getComputedStyle(document.documentElement).getPropertyValue("--dc").trim(), duration:120}, "<");
+    });
+    tl.add(".coil-fill", {opacity:[0,.9], scale:[.3,1], duration:600, ease:"outElastic(1,.6)"}, "<")
+      .add(".coil", {stroke:getComputedStyle(document.documentElement).getPropertyValue("--dc").trim(), duration:200}, "<")
+      .add(power[4], {draw:["0 0","0 1"], duration:260, ease:"linear"}, "<<+=150");
+    return tl;
+  }
+
+  /* Intro: draw the rung, energise it, then set the name */
+  A.utils.set(power, {draw:"0 0"});
+  const intro = createTimeline({defaults:{ease:"inOutQuad"}})
+    .add(svg.createDrawable(".rung .draw"), {draw:["0 0","0 1"], duration:700, delay:stagger(45)})
+    .add(".rung .tag", {opacity:[0,1], translateY:[6,0], duration:400, delay:stagger(80)}, "-=300");
+  powerOn(intro, "+=150");
+  intro.add(chars, {translateY:["110%","0%"], duration:750, ease:"outExpo", delay:stagger(28)}, "-=500");
+
+  /* Cycle power button replays the energising sequence */
+  let on = true, busy = false;
+  cycleBtn.addEventListener("click", () => {
+    if (busy) return;
+    busy = true; on = !on;
+    cycleBtn.setAttribute("aria-pressed", on);
+    $(".cycle-label").textContent = on ? "Cycle power" : "Power on";
+    const ink = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+    if (!on){
+      createTimeline({onComplete:()=>busy=false})
+        .add(".coil-fill", {opacity:0, scale:.3, duration:250, ease:"inQuad"})
+        .add([...power].reverse(), {draw:"0 0", duration:180, delay:stagger(60), ease:"linear"}, "<")
+        .add([".rung .contact path", ".coil"], {stroke:ink, duration:150}, "<");
+    } else {
+      powerOn(createTimeline({onComplete:()=>busy=false}), 0);
+    }
+  });
+
+  /* Experience: blue wire follows scroll and energises each terminal it reaches */
+  animate(".wire i", {
+    scaleY:[0,1], ease:"linear",
+    autoplay: onScroll({target:"#jobs", enter:"center top", leave:"center bottom", sync:true})
+  });
+  $$(".job").forEach(job => {
+    onScroll({
+      target: job, enter:"center top",
+      onEnterForward: () => { job.classList.add("live"); animate(job, {scale:[1,1.012,1], duration:350, ease:"outQuad"}); },
+      onLeaveBackward: () => job.classList.remove("live")
+    });
+  });
+
+  /* Contact: scramble the address in when it first appears */
+  const email = $("#email");
+  let scrambled = false;
+  onScroll({
+    target: email, enter:"bottom top",
+    onEnter: () => {
+      if (scrambled) return; scrambled = true;
+      animate(email, {innerHTML: A.scrambleText({chars:"symbols", cursor:true}), duration:1100});
+    }
+  });
+}
+</script>
+</body>
+</html>

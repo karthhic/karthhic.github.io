@@ -1,0 +1,1308 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Part Stress Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: control rail on the left, 3D viewport with a results strip on the right; stacks to one column on phones */
+:root{
+  --bg:#e9ecef; --panel:#f7f8f9; --field:#ffffff; --ink:#1a1f25; --muted:#5b6570; --line:#d3d9de;
+  --viewport:#dde2e6; --accent:#d9561a; --support:#2463c9; --primary:#1f2a36; --primary-ink:#f4f6f8;
+  --ok:#1d8048; --warn:#a96f12; --bad:#bf2f25;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121518; --panel:#1a1e23; --field:#22272d; --ink:#e4e8ec; --muted:#97a1ab; --line:#2d343b;
+  --viewport:#0d1013; --accent:#f07a3a; --support:#5b94ee; --primary:#e4e8ec; --primary-ink:#121518;
+  --ok:#43b874; --warn:#e3a53c; --bad:#f05a4d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121518; --panel:#1a1e23; --field:#22272d; --ink:#e4e8ec; --muted:#97a1ab; --line:#2d343b;
+  --viewport:#0d1013; --accent:#f07a3a; --support:#5b94ee; --primary:#e4e8ec; --primary-ink:#121518;
+  --ok:#43b874; --warn:#e3a53c; --bad:#f05a4d; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.4}
+.app{height:100%;display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;
+  padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box}
+.rail{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;min-height:0;display:flex;flex-direction:column}
+.brand{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:24px;letter-spacing:.01em;margin:0;text-wrap:balance}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.group{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.group h2{font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row > label{color:var(--muted);font-size:13px;min-width:74px}
+.grow{flex:1;min-width:0}
+input[type=number],input[type=text],select{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;box-sizing:border-box}
+input[type=number]{font-family:var(--f-mono);font-size:13px}
+input:focus-visible,select:focus-visible,button:focus-visible,.filebtn:focus-within{outline:2px solid var(--support);outline-offset:1px}
+input[type=range]{accent-color:var(--ink);flex:1;min-width:0}
+button,.filebtn{font:inherit;font-weight:500;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover,.filebtn:hover{border-color:var(--muted)}
+.filebtn input{position:absolute;width:1px;height:1px;opacity:0}
+.filebtn{position:relative;display:inline-block}
+.matgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.matgrid label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);min-width:0}
+.matgrid input{width:100%}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--line);padding:7px 4px;font-size:13px}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"][data-mode="orbit"]{background:var(--primary);color:var(--primary-ink)}
+.seg button[aria-pressed="true"][data-mode="fixed"]{background:var(--support);color:#fff}
+.seg button[aria-pressed="true"][data-mode="load"]{background:var(--accent);color:#fff}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+.dot.s{background:var(--support)} .dot.l{background:var(--accent)}
+.dirs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.dirs button{padding:5px 0;font-family:var(--f-mono);font-size:12px}
+.vec{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.vec label{display:flex;align-items:center;gap:4px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.vec input{width:100%}
+.check{display:flex;gap:8px;align-items:center;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--ink)}
+.small{font-size:12px;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.runbox{padding:14px 18px 18px;display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary);font-family:var(--f-display);font-weight:600;font-size:16px;letter-spacing:.04em;padding:10px}
+.primary:hover{border-color:var(--primary);filter:brightness(1.12)}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.msg{font-size:13px;color:var(--muted);min-height:1.3em}
+.msg.err{color:var(--bad)}
+.stage{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.viewport{position:relative;flex:1;min-height:320px;background:var(--viewport);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.viewport canvas{display:block;width:100%;height:100%;touch-action:none}
+.legend{position:absolute;left:12px;bottom:12px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11px}
+.legend h3{margin:0 0 6px;font-family:var(--f-display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.legend .lr{display:flex;align-items:center;gap:7px;height:15px}
+.legend .sw{width:16px;height:13px;border-radius:2px}
+.hint{position:absolute;right:12px;top:12px;max-width:min(300px,60%);background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--muted)}
+.results{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile .k{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tile .v{font-family:var(--f-mono);font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v small{font-size:12px;color:var(--muted);margin-left:3px}
+.chip{display:inline-block;font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid currentColor;width:max-content}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)} .chip.idle{color:var(--muted)}
+.viewopts{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+.viewopts .row label{min-width:0}
+.stale{color:var(--warn);font-size:12px}
+.note{font-size:12px;color:var(--muted);max-width:75ch}
+.trim{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.trim .k{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0}
+.trim .row label{min-width:0}
+.trim input[type=range]{flex:0 1 120px}
+.trimrow{display:flex;flex-wrap:wrap;gap:8px 22px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.tabbar{display:none}
+/* Phones: 3D view pinned on top, one scrolling panel below it, bottom tab bar picks the panel */
+@media (max-width:820px){
+  html,body{height:100%;overflow:hidden}
+  .app{grid-template-columns:1fr;grid-template-rows:minmax(0,58fr) minmax(0,42fr) auto;gap:8px;padding-block:8px 0}
+  body[data-tab="setup"] .app, body[data-tab="redesign"] .app{grid-template-rows:minmax(0,40fr) minmax(0,60fr) auto}
+  .stage{display:contents}
+  .viewport{grid-row:1;min-height:0}
+  .rail,.results{grid-row:2;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  body:not([data-tab="setup"]) .rail{display:none}
+  body[data-tab="setup"] .results{display:none}
+  body[data-tab="view"] .results .trim{display:none}
+  body[data-tab="redesign"] .results > :not(.trim){display:none}
+  body[data-tab="redesign"] .trim{border-top:0;padding-top:0}
+  body:not([data-tab="view"]) .legend{display:none}
+  .brand{padding:12px 16px 10px}
+  .brand h1{font-size:20px}
+  .group{padding:12px 16px}
+  .runbox{padding:12px 16px 16px}
+  .legend{left:8px;bottom:8px;padding:6px 8px;font-size:10px}
+  .legend .lr{height:12px} .legend .sw{width:12px;height:10px}
+  .hint{right:8px;top:8px;font-size:11px;padding:5px 8px}
+  .tabbar{grid-row:3;display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border-top:1px solid var(--line);
+    margin-left:calc(-1 * max(16px, env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right,0px)));
+    padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tabbar button{border:0;border-radius:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:8px 4px 9px;font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;position:relative}
+  .tabbar button svg{width:22px;height:22px}
+  .tabbar button[aria-selected="true"]{color:var(--ink)}
+  .tabbar button[aria-selected="true"]::before{content:"";position:absolute;top:-1px;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <header class="brand">
+      <h1>Part Stress Lab</h1>
+      <p>Linear static stress check of an STL or STEP part, solved with voxel finite elements.</p>
+    </header>
+
+    <section class="group">
+      <h2>Part</h2>
+      <div class="row">
+        <label class="filebtn">Open STL or STEP…<input type="file" id="stlFile" accept=".stl,.step,.stp"></label>
+        <button id="sampleBtn" type="button">Sample bracket</button>
+      </div>
+      <div class="row"><label for="units">STL units</label>
+        <select id="units" class="grow">
+          <option value="1">millimetres</option><option value="10">centimetres</option>
+          <option value="1000">metres</option><option value="25.4">inches</option>
+        </select></div>
+      <div id="partInfo" class="small mono">No part loaded</div>
+    </section>
+
+    <section class="group">
+      <h2>Material</h2>
+      <select id="material"></select>
+      <div class="matgrid">
+        <label for="mE">Young's modulus (GPa)<input type="number" id="mE" step="any" min="0"></label>
+        <label for="mNu">Poisson's ratio<input type="number" id="mNu" step="0.01" min="0" max="0.49"></label>
+        <label for="mRho">Density (kg/m³)<input type="number" id="mRho" step="any" min="0"></label>
+        <label for="mSy">Yield strength (MPa)<input type="number" id="mSy" step="any" min="0"></label>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>Supports and load</h2>
+      <div class="seg" role="group" aria-label="Click mode">
+        <button type="button" data-mode="orbit" aria-pressed="true">Orbit</button>
+        <button type="button" data-mode="fixed" aria-pressed="false">Paint fixed</button>
+        <button type="button" data-mode="load" aria-pressed="false">Paint load</button>
+      </div>
+      <div class="row"><label for="brush">Brush</label><input type="range" id="brush" min="1" max="40" step="0.5" value="6"><span id="brushOut" class="mono small">6 mm</span></div>
+      <div class="row">
+        <span class="small"><span class="dot s"></span><span id="fixCount">0</span> fixed nodes</span>
+        <span class="grow"></span>
+        <button id="clearFixed" type="button">Clear</button>
+      </div>
+      <div class="row">
+        <select id="faceFix" class="grow" aria-label="Fix a whole face">
+          <option value="">Fix a whole face…</option>
+          <option value="2,-1">Bottom (−Z)</option><option value="2,1">Top (+Z)</option>
+          <option value="0,-1">−X face</option><option value="0,1">+X face</option>
+          <option value="1,-1">−Y face</option><option value="1,1">+Y face</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="small"><span class="dot l"></span><span id="loadCount">0</span> load nodes</span>
+        <span class="grow"></span>
+        <button id="clearLoad" type="button">Clear</button>
+      </div>
+      <div class="row"><label for="forceVal">Load</label>
+        <input type="number" id="forceVal" value="250" min="0" step="any" class="grow">
+        <select id="forceUnit" aria-label="Load unit"><option value="N">N</option><option value="kg">kg</option></select>
+      </div>
+      <div id="forceN" class="small mono"></div>
+      <div class="dirs" role="group" aria-label="Load direction presets">
+        <button type="button" data-dir="-1,0,0">−X</button><button type="button" data-dir="1,0,0">+X</button>
+        <button type="button" data-dir="0,-1,0">−Y</button><button type="button" data-dir="0,1,0">+Y</button>
+        <button type="button" data-dir="0,0,-1">−Z</button><button type="button" data-dir="0,0,1">+Z</button>
+      </div>
+      <div class="vec">
+        <label for="dx">x<input type="number" id="dx" value="0" step="0.1"></label>
+        <label for="dy">y<input type="number" id="dy" value="0" step="0.1"></label>
+        <label for="dz">z<input type="number" id="dz" value="-1" step="0.1"></label>
+      </div>
+      <label class="check" for="gravity"><input type="checkbox" id="gravity" checked> Include self-weight (gravity along −Z)</label>
+    </section>
+
+    <section class="group">
+      <h2>Mesh</h2>
+      <div class="row"><label for="detail">Detail</label><input type="range" id="detail" min="16" max="96" step="2" value="48"><span id="detailOut" class="mono small">48</span></div>
+      <div id="meshInfo" class="small mono">—</div>
+      <div class="small">Aim for 3 or more voxels across the thinnest wall. Finer meshes take longer.</div>
+    </section>
+
+    <div class="runbox">
+      <button id="runBtn" class="primary" type="button">Run analysis</button>
+      <div class="bar"><i id="barFill"></i></div>
+      <div id="msg" class="msg" role="status"></div>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="viewport" id="viewport">
+      <div class="legend" id="legend" hidden></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <section class="results" aria-label="Results">
+      <div class="tiles">
+        <div class="tile"><span class="k">Safety factor</span><span class="v" id="rSF">—</span><span class="chip idle" id="rChip">Not run</span></div>
+        <div class="tile"><span class="k">Peak von Mises</span><span class="v" id="rPeak">—</span><span class="small mono" id="rPeakAt"></span></div>
+        <div class="tile"><span class="k">Max displacement</span><span class="v" id="rDisp">—</span></div>
+        <div class="tile"><span class="k">Total load</span><span class="v" id="rLoad">—</span><span class="small mono" id="rLoadNote"></span></div>
+        <div class="tile"><span class="k">Part mass</span><span class="v" id="rMass">—</span><span class="small mono" id="rMat"></span></div>
+      </div>
+      <div class="viewopts">
+        <div class="row"><label for="scaleMode">Colour scale</label>
+          <select id="scaleMode"><option value="peak">0 → peak stress</option><option value="yield">0 → yield strength</option></select></div>
+        <div class="row"><label for="deform">Deformation</label><input type="range" id="deform" min="0" max="100" value="0" style="width:120px"><span id="deformOut" class="mono small">off</span></div>
+        <label class="check" for="showGrid"><input type="checkbox" id="showGrid"> Show analysis voxels</label>
+        <span id="stale" class="stale" hidden>Inputs changed. Run again to update.</span>
+      </div>
+      <div class="trim">
+        <h3 class="k">Redesign the part</h3>
+        <div class="trimrow">
+          <div class="row"><label for="trimPct">Remove below</label><input type="range" id="trimPct" min="2" max="60" value="15"><span id="trimPctOut" class="mono small">15%</span></div>
+          <div class="row"><label for="trimMargin">Keep margin</label><input type="number" id="trimMargin" value="2" min="0" step="0.5" style="width:70px"><span class="small">mm</span></div>
+        </div>
+        <div class="trimrow">
+          <div class="row"><label for="addPct">Reinforce above</label><input type="range" id="addPct" min="30" max="95" value="60"><span id="addPctOut" class="mono small">60%</span></div>
+          <div class="row"><label for="addMm">Add thickness</label><input type="number" id="addMm" value="1.5" min="0" step="0.5" style="width:70px"><span class="small">mm (0 = off)</span></div>
+          <div class="row"><label for="trimSmooth">Smoothing</label><input type="range" id="trimSmooth" min="0" max="12" value="5"></div>
+        </div>
+        <div class="row">
+          <button id="trimBtn" type="button" disabled>Preview redesign</button>
+          <button id="trimSave" type="button" disabled>Save STL</button>
+          <button id="trimRun" type="button" disabled>Analyse redesigned part</button>
+          <button id="trimHide" type="button" hidden>Back to stress view</button>
+        </div>
+        <div id="trimInfo" class="small">Run an analysis first. Low-stress material is removed and high-stress areas are thickened; support and load surfaces stay where they are.</div>
+      </div>
+      <div class="note" id="solverNote">Linear elastic, small-displacement estimate on a voxel mesh. Sharp inside corners and support edges read high; treat the colours as a guide to weak spots and confirm critical parts with full FEA or testing. 3D-printed values are approximate and depend on print orientation.</div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" data-tab="view" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>
+      <span>View</span>
+    </button>
+    <button type="button" role="tab" data-tab="setup" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      <span>Setup</span>
+    </button>
+    <button type="button" role="tab" data-tab="redesign" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20L15 9"/><path d="M14 4v3M19 9h-3M17.5 5.5l-2 2M10 3.5v1.5M20.5 14H19"/></svg>
+      <span>Redesign</span>
+    </button>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const G = 9.80665;
+
+const MATERIALS = [
+  {name:'Aluminium 6061-T6',          E:68.9,  nu:0.33, rho:2700, Sy:276},
+  {name:'Structural steel S235',      E:200,   nu:0.30, rho:7850, Sy:235},
+  {name:'Carbon steel C45 / 1045',    E:205,   nu:0.29, rho:7850, Sy:340},
+  {name:'Stainless steel 304',        E:193,   nu:0.29, rho:8000, Sy:215},
+  {name:'Titanium Ti-6Al-4V',         E:113.8, nu:0.34, rho:4430, Sy:880},
+  {name:'Brass CW614N',               E:97,    nu:0.31, rho:8500, Sy:250},
+  {name:'PLA (3D printed)',           E:3.5,   nu:0.36, rho:1240, Sy:50},
+  {name:'PETG (3D printed)',          E:2.0,   nu:0.38, rho:1270, Sy:45},
+  {name:'ABS',                        E:2.2,   nu:0.35, rho:1050, Sy:40},
+  {name:'Nylon PA12',                 E:1.7,   nu:0.39, rho:1010, Sy:45},
+  {name:'Polycarbonate',              E:2.4,   nu:0.37, rho:1200, Sy:62},
+];
+
+const S = { rawPos:null, pos:null, name:'', grid:null, fixed:[], loads:[], result:null, mode:'orbit', running:null, volume:0 };
+
+/* ---------- STL parsing ---------- */
+function parseSTL(buf){
+  const dv = new DataView(buf);
+  if (buf.byteLength >= 84){
+    const n = dv.getUint32(80, true);
+    if (84 + n*50 === buf.byteLength){
+      const pos = new Float32Array(n*9);
+      for (let t=0; t<n; t++){
+        const off = 84 + t*50 + 12;
+        for (let k=0; k<9; k++) pos[t*9+k] = dv.getFloat32(off + k*4, true);
+      }
+      return pos;
+    }
+  }
+  const text = new TextDecoder().decode(buf);
+  const re = /vertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/g;
+  const out = []; let m;
+  while ((m = re.exec(text))) out.push(+m[1], +m[2], +m[3]);
+  if (!out.length || out.length % 9) throw new Error('Could not read triangles from this STL file.');
+  return new Float32Array(out);
+}
+
+/* ---------- STEP import (OpenCascade compiled to WebAssembly, loaded on first use) ---------- */
+const OCCT_CDN = 'https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/';
+let occtPromise = null;
+function loadOcct(){
+  if (occtPromise) return occtPromise;
+  occtPromise = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = OCCT_CDN + 'occt-import-js.js';
+    s.onload = res;
+    s.onerror = () => rej(new Error('Could not load the STEP reader. Check your internet connection.'));
+    document.head.appendChild(s);
+  }).then(async () => {
+    // a copy of the .wasm published next to the page is tried first; opened from disk, use the CDN
+    const bases = location.protocol === 'file:' ? [OCCT_CDN] : ['', OCCT_CDN];
+    for (const base of bases){
+      try { return await occtimportjs({locateFile: f => base + f}); } catch (e) {}
+    }
+    throw new Error('Could not start the STEP reader in this browser.');
+  });
+  occtPromise.catch(() => { occtPromise = null; });
+  return occtPromise;
+}
+async function parseSTEP(buf){
+  const occt = await loadOcct();
+  const r = occt.ReadStepFile(new Uint8Array(buf), {linearUnit:'millimeter', linearDeflectionType:'bounding_box_ratio', linearDeflection:0.0008, angularDeflection:0.4});
+  if (!r || !r.success || !r.meshes || !r.meshes.length) throw new Error('No solid geometry found in this STEP file.');
+  let nt = 0;
+  for (const m of r.meshes) nt += m.index ? m.index.array.length/3 : m.attributes.position.array.length/9;
+  const pos = new Float32Array(nt*9); let o = 0;
+  for (const m of r.meshes){
+    const p = m.attributes.position.array, idx = m.index ? m.index.array : null;
+    const n = idx ? idx.length : p.length/3;
+    for (let i=0; i<n; i++){ const v = idx ? idx[i] : i; pos[o++]=p[v*3]; pos[o++]=p[v*3+1]; pos[o++]=p[v*3+2]; }
+  }
+  return {pos, bodies: r.meshes.length};
+}
+
+function sampleBracket(){
+  // L bracket: wall plate 6 mm thick, 60 mm tall; shelf 70 mm long, 6 mm thick; 30 mm wide
+  const sh = new THREE.Shape();
+  sh.moveTo(0,0); sh.lineTo(6,0); sh.lineTo(6,54); sh.lineTo(70,54); sh.lineTo(70,60); sh.lineTo(0,60); sh.lineTo(0,0);
+  const geo = new THREE.ExtrudeGeometry(sh, {depth:30, bevelEnabled:false});
+  const g2 = geo.index ? geo.toNonIndexed() : geo;
+  const a = g2.attributes.position.array, pos = new Float32Array(a.length);
+  for (let i=0; i<a.length; i+=3){ pos[i]=a[i]; pos[i+1]=30-a[i+2]; pos[i+2]=a[i+1]; }
+  return pos;
+}
+
+/* ---------- voxelization ---------- */
+function voxelize(pos, N){
+  const mn=[Infinity,Infinity,Infinity], mx=[-Infinity,-Infinity,-Infinity];
+  for (let i=0; i<pos.length; i+=3) for (let a=0; a<3; a++){ const v=pos[i+a]; if (v<mn[a]) mn[a]=v; if (v>mx[a]) mx[a]=v; }
+  const size = [0,1,2].map(a=>mx[a]-mn[a]);
+  const L = Math.max(...size), h = L/N;
+  const n = [0,1,2].map(a=>Math.max(1, Math.ceil(size[a]/h - 1e-6)));
+  const o = [0,1,2].map(a=>mn[a] - (n[a]*h - size[a])/2);
+  const [nx,ny,nz] = n, nv = nx*ny*nz;
+  const solid = new Uint8Array(nv);
+  const vid = (i,j,k) => i + nx*(j + ny*k);
+  const nt = pos.length/9;
+
+  // parity fill along X through voxel centres
+  const rows = new Array(ny*nz);
+  const jy = 1.37e-7*h, jz = 0.73e-7*h;
+  for (let t=0; t<nt; t++){
+    const b=t*9, x0=pos[b],y0=pos[b+1],z0=pos[b+2],x1=pos[b+3],y1=pos[b+4],z1=pos[b+5],x2=pos[b+6],y2=pos[b+7],z2=pos[b+8];
+    const d = (y1-y0)*(z2-z0)-(y2-y0)*(z1-z0);
+    if (Math.abs(d) < 1e-14) continue;
+    const j0=Math.max(0,Math.ceil((Math.min(y0,y1,y2)-o[1])/h-0.5)), j1=Math.min(ny-1,Math.floor((Math.max(y0,y1,y2)-o[1])/h-0.5));
+    const k0=Math.max(0,Math.ceil((Math.min(z0,z1,z2)-o[2])/h-0.5)), k1=Math.min(nz-1,Math.floor((Math.max(z0,z1,z2)-o[2])/h-0.5));
+    for (let k=k0; k<=k1; k++){
+      const pz = o[2]+(k+0.5)*h+jz;
+      for (let j=j0; j<=j1; j++){
+        const py = o[1]+(j+0.5)*h+jy;
+        const l1 = ((py-y0)*(z2-z0)-(y2-y0)*(pz-z0))/d;
+        const l2 = ((y1-y0)*(pz-z0)-(py-y0)*(z1-z0))/d;
+        const l0 = 1-l1-l2;
+        if (l0<0 || l1<0 || l2<0) continue;
+        const r = j + ny*k;
+        (rows[r] || (rows[r]=[])).push(l0*x0+l1*x1+l2*x2);
+      }
+    }
+  }
+  for (let r=0; r<rows.length; r++){
+    const xs = rows[r]; if (!xs) continue;
+    xs.sort((a,b)=>a-b);
+    const j = r % ny, k = (r - j)/ny;
+    for (let p=0; p+1<xs.length; p+=2){
+      const i0 = Math.max(0, Math.ceil((xs[p]-o[0])/h-0.5)), i1 = Math.min(nx-1, Math.floor((xs[p+1]-o[0])/h-0.5));
+      for (let i=i0; i<=i1; i++) solid[vid(i,j,k)] = 1;
+    }
+  }
+
+  // rescue walls thinner than a voxel: surface voxels with no filled neighbour
+  const surf = new Uint8Array(nv);
+  const cl = (v,m) => v<0?0:(v>=m?m-1:v);
+  for (let t=0; t<nt; t++){
+    const b=t*9;
+    const e1=[pos[b+3]-pos[b],pos[b+4]-pos[b+1],pos[b+5]-pos[b+2]], e2=[pos[b+6]-pos[b],pos[b+7]-pos[b+1],pos[b+8]-pos[b+2]];
+    const le = Math.max(Math.hypot(...e1), Math.hypot(...e2), Math.hypot(e2[0]-e1[0],e2[1]-e1[1],e2[2]-e1[2]));
+    const m = Math.max(1, Math.ceil(le/(0.5*h)));
+    for (let a=0; a<=m; a++) for (let c=0; c<=m-a; c++){
+      const s=a/m, u=c/m;
+      const i=cl(Math.floor((pos[b]+e1[0]*s+e2[0]*u-o[0])/h),nx), j=cl(Math.floor((pos[b+1]+e1[1]*s+e2[1]*u-o[1])/h),ny), k=cl(Math.floor((pos[b+2]+e1[2]*s+e2[2]*u-o[2])/h),nz);
+      surf[vid(i,j,k)] = 1;
+    }
+  }
+  const add = [];
+  for (let k=0; k<nz; k++) for (let j=0; j<ny; j++) for (let i=0; i<nx; i++){
+    const v = vid(i,j,k);
+    if (!surf[v] || solid[v]) continue;
+    if ((i>0&&solid[v-1])||(i<nx-1&&solid[v+1])||(j>0&&solid[v-nx])||(j<ny-1&&solid[v+nx])||(k>0&&solid[v-nx*ny])||(k<nz-1&&solid[v+nx*ny])) continue;
+    add.push(v);
+  }
+  for (const v of add) solid[v] = 1;
+
+  // elements and nodes
+  const NX=nx+1, NY=ny+1, NZ=nz+1;
+  const adj = new Uint8Array(NX*NY*NZ);
+  const ev = [];
+  for (let k=0; k<nz; k++) for (let j=0; j<ny; j++) for (let i=0; i<nx; i++){
+    if (!solid[vid(i,j,k)]) continue;
+    ev.push(vid(i,j,k));
+    for (let c=0; c<8; c++) adj[(i+(c&1)) + NX*((j+((c>>1)&1)) + NY*(k+((c>>2)&1)))]++;
+  }
+  const gridToNode = new Int32Array(NX*NY*NZ).fill(-1);
+  let nn = 0;
+  for (let q=0; q<adj.length; q++) if (adj[q]) gridToNode[q] = nn++;
+  const nodeXYZ = new Float32Array(nn*3), nodeSurf = new Uint8Array(nn), nodeGrid = new Int32Array(nn);
+  for (let q=0; q<adj.length; q++){
+    const id = gridToNode[q]; if (id<0) continue;
+    const i=q%NX, j=Math.floor(q/NX)%NY, k=Math.floor(q/(NX*NY));
+    nodeXYZ[id*3]=o[0]+i*h; nodeXYZ[id*3+1]=o[1]+j*h; nodeXYZ[id*3+2]=o[2]+k*h;
+    nodeSurf[id] = adj[q] < 8 ? 1 : 0; nodeGrid[id] = q;
+  }
+  const nel = ev.length, conn = new Int32Array(nel*8), elemVox = Int32Array.from(ev);
+  for (let e=0; e<nel; e++){
+    const v=ev[e], i=v%nx, j=Math.floor(v/nx)%ny, k=Math.floor(v/(nx*ny));
+    for (let c=0; c<8; c++) conn[e*8+c] = gridToNode[(i+(c&1)) + NX*((j+((c>>1)&1)) + NY*(k+((c>>2)&1)))];
+  }
+  return {N, h, o, n, solid, nel, conn, elemVox, nn, nodeXYZ, nodeSurf, nodeGrid, NX, NY, NZ};
+}
+
+function resolvePatches(patches, g){
+  const sel = new Uint8Array(g.nn);
+  for (const p of patches){
+    if (p.type === 'face'){
+      let ext = p.side<0 ? Infinity : -Infinity;
+      for (let i=0; i<g.nn; i++){ const c=g.nodeXYZ[i*3+p.axis]; ext = p.side<0 ? Math.min(ext,c) : Math.max(ext,c); }
+      for (let i=0; i<g.nn; i++) if (Math.abs(g.nodeXYZ[i*3+p.axis]-ext) < 0.5*g.h) sel[i]=1;
+    } else {
+      const r = Math.max(p.r, g.h*1.01), r2 = r*r;
+      for (let i=0; i<g.nn; i++){
+        if (!g.nodeSurf[i]) continue;
+        const dx=g.nodeXYZ[i*3]-p.p[0], dy=g.nodeXYZ[i*3+1]-p.p[1], dz=g.nodeXYZ[i*3+2]-p.p[2];
+        if (dx*dx+dy*dy+dz*dz <= r2) sel[i]=1;
+      }
+    }
+  }
+  return sel;
+}
+
+/* ---------- element matrices (8-node hex with 9 incompatible modes, unit cube, E = 1) ----------
+   Plain trilinear bricks lock in bending and under-read stress in thin walls. The incompatible
+   modes are condensed out once, since every voxel is the same cube. */
+function hexMatrices(nu){
+  const lam = nu/((1+nu)*(1-2*nu)), mu = 1/(2*(1+nu));
+  const D = new Float64Array(36);
+  for (let i=0; i<3; i++) for (let j=0; j<3; j++) D[i*6+j] = lam + (i===j ? 2*mu : 0);
+  D[21]=D[28]=D[35]=mu;
+  const gq = 1/Math.sqrt(3), NC = 33;
+  const Kf = new Float64Array(NC*NC), Bf = new Float64Array(8*6*NC), DB = new Float64Array(6*NC);
+  const put = (B, c, g) => { B[c]=g[0]; B[NC+c+1]=g[1]; B[2*NC+c+2]=g[2]; B[3*NC+c]=g[1]; B[3*NC+c+1]=g[0]; B[4*NC+c+1]=g[2]; B[4*NC+c+2]=g[1]; B[5*NC+c]=g[2]; B[5*NC+c+2]=g[0]; };
+  for (let gp=0; gp<8; gp++){
+    const x=[(gp&1)?gq:-gq, (gp&2)?gq:-gq, (gp&4)?gq:-gq];
+    const B = Bf.subarray(gp*6*NC, (gp+1)*6*NC);
+    for (let a=0; a<8; a++){
+      const s=[(a&1)?1:-1, (a&2)?1:-1, (a&4)?1:-1];
+      put(B, a*3, [s[0]*(1+x[1]*s[1])*(1+x[2]*s[2])/4, s[1]*(1+x[0]*s[0])*(1+x[2]*s[2])/4, s[2]*(1+x[0]*s[0])*(1+x[1]*s[1])/4]);
+    }
+    // bubble modes (1 - xi_q^2) for each displacement component c; dofs 24 + c*3 + q, laid out like a node
+    for (let q=0; q<3; q++){
+      const g=[0,0,0]; g[q] = -4*x[q];
+      for (let c=0; c<3; c++){ const col = 24 + q*3; const gc=[0,0,0]; gc[q]=g[q];
+        if (c===0){ B[col]=gc[0]; B[3*NC+col]=gc[1]; B[5*NC+col]=gc[2]; }
+        if (c===1){ B[NC+col+1]=gc[1]; B[3*NC+col+1]=gc[0]; B[4*NC+col+1]=gc[2]; }
+        if (c===2){ B[2*NC+col+2]=gc[2]; B[4*NC+col+2]=gc[1]; B[5*NC+col+2]=gc[0]; }
+      }
+    }
+    for (let r=0; r<6; r++) for (let c=0; c<NC; c++){ let s=0; for (let k=0; k<6; k++) s+=D[r*6+k]*B[k*NC+c]; DB[r*NC+c]=s; }
+    for (let i=0; i<NC; i++) for (let j=0; j<NC; j++){ let s=0; for (let k=0; k<6; k++) s+=B[k*NC+i]*DB[k*NC+j]; Kf[i*NC+j]+=s/8; }
+  }
+  // T = Kaa^-1 Kau (9 x 24), by Gauss-Jordan on [Kaa | Kau]
+  const A = [];
+  for (let i=0; i<9; i++){ const row=[]; for (let j=0; j<9; j++) row.push(Kf[(24+i)*NC+24+j]); for (let j=0; j<24; j++) row.push(Kf[(24+i)*NC+j]); A.push(row); }
+  for (let c=0; c<9; c++){
+    let p=c; for (let r=c+1; r<9; r++) if (Math.abs(A[r][c])>Math.abs(A[p][c])) p=r;
+    [A[c],A[p]]=[A[p],A[c]];
+    const d=A[c][c]; for (let j=0; j<33; j++) A[c][j]/=d;
+    for (let r=0; r<9; r++) if (r!==c){ const f=A[r][c]; if (f) for (let j=0; j<33; j++) A[r][j]-=f*A[c][j]; }
+  }
+  const T = (i,j) => A[i][9+j];
+  const Ke = new Float64Array(576);
+  for (let i=0; i<24; i++) for (let j=0; j<24; j++){
+    let s = Kf[i*NC+j]; for (let k=0; k<9; k++) s -= Kf[i*NC+24+k]*T(k,j); Ke[i*24+j] = s;
+  }
+  const Bg = new Float64Array(8*144);
+  for (let gp=0; gp<8; gp++) for (let r=0; r<6; r++) for (let j=0; j<24; j++){
+    const B = gp*6*NC + r*NC; let s = Bf[B+j]; for (let k=0; k<9; k++) s -= Bf[B+24+k]*T(k,j); Bg[gp*144+r*24+j] = s;
+  }
+  return {Ke, Bg, D};
+}
+
+/* ---------- solver (runs in a Web Worker) ---------- */
+function solverWorker(){
+  self.onmessage = ev => {
+    const {Ke, Bg, D, conn, nNodes, fixed, f, E, h, tol, maxIter} = ev.data;
+    const nel = conn.length/8, n = nNodes*3, s = E*h;
+    const edof = new Int32Array(nel*24);
+    for (let e=0; e<nel; e++) for (let a=0; a<8; a++){ const b=conn[e*8+a]*3, q=e*24+a*3; edof[q]=b; edof[q+1]=b+1; edof[q+2]=b+2; }
+    const diag = new Float64Array(n);
+    for (let e=0; e<nel; e++) for (let i=0; i<24; i++) diag[edof[e*24+i]] += Ke[i*25]*s;
+    for (let i=0; i<n; i++) if (fixed[i] || diag[i]===0) diag[i]=1;
+    const xe = new Float64Array(24);
+    function mul(x, y){
+      y.fill(0);
+      for (let e=0; e<nel; e++){
+        const off=e*24;
+        for (let i=0; i<24; i++) xe[i]=x[edof[off+i]];
+        for (let i=0; i<24; i++){ let sum=0; const r=i*24; for (let j=0; j<24; j++) sum+=Ke[r+j]*xe[j]; y[edof[off+i]]+=s*sum; }
+      }
+      for (let i=0; i<n; i++) if (fixed[i]) y[i]=0;
+    }
+    const dot = (a,b) => { let t=0; for (let i=0; i<a.length; i++) t+=a[i]*b[i]; return t; };
+    const u = new Float64Array(n), r = Float64Array.from(f), z = new Float64Array(n), p = new Float64Array(n), Ap = new Float64Array(n);
+    for (let i=0; i<n; i++) if (fixed[i]) r[i]=0;
+    const bn = Math.sqrt(dot(r,r));
+    let it=0, rel=0;
+    if (bn > 0){
+      for (let i=0; i<n; i++){ z[i]=r[i]/diag[i]; p[i]=z[i]; }
+      let rz = dot(r,z);
+      for (it=1; it<=maxIter; it++){
+        mul(p, Ap);
+        const alpha = rz/dot(p,Ap);
+        for (let i=0; i<n; i++){ u[i]+=alpha*p[i]; r[i]-=alpha*Ap[i]; }
+        rel = Math.sqrt(dot(r,r))/bn;
+        if (it % 20 === 0) self.postMessage({type:'progress', it, rel});
+        if (rel < tol) break;
+        for (let i=0; i<n; i++) z[i]=r[i]/diag[i];
+        const rz2 = dot(r,z), beta = rz2/rz; rz = rz2;
+        for (let i=0; i<n; i++) p[i]=z[i]+beta*p[i];
+      }
+    }
+    // von Mises: the largest of the 8 Gauss-point values in each element
+    const vm = new Float32Array(nel), eps = new Float64Array(6), sg = new Float64Array(6);
+    for (let e=0; e<nel; e++){
+      for (let i=0; i<24; i++) xe[i]=u[edof[e*24+i]];
+      let mx=0;
+      for (let g=0; g<8; g++){
+        const B=g*144;
+        for (let k=0; k<6; k++){ let t=0; for (let j=0; j<24; j++) t+=Bg[B+k*24+j]*xe[j]; eps[k]=t/h; }
+        for (let k=0; k<6; k++){ let t=0; for (let j=0; j<6; j++) t+=D[k*6+j]*eps[j]; sg[k]=E*t; }
+        const v = Math.sqrt(0.5*((sg[0]-sg[1])**2+(sg[1]-sg[2])**2+(sg[2]-sg[0])**2) + 3*(sg[3]**2+sg[4]**2+sg[5]**2));
+        if (v>mx) mx=v;
+      }
+      vm[e]=mx;
+    }
+    self.postMessage({type:'done', u, vm, it, rel}, [u.buffer, vm.buffer]);
+  };
+}
+const workerURL = URL.createObjectURL(new Blob(['(' + solverWorker.toString() + ')()'], {type:'text/javascript'}));
+
+/* ---------- 3D view ---------- */
+const vp = $('viewport');
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.setClearColor(0x000000, 0);
+vp.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 1e6);
+camera.up.set(0,0,1);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x58616b, 0.7));
+const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(1,-1.4,2.2); scene.add(sun);
+const headLight = new THREE.DirectionalLight(0xffffff, 0.35); camera.add(headLight); scene.add(camera);
+
+let partMesh=null, gridMesh=null, helpers=new THREE.Group(), markers=new THREE.Group();
+scene.add(helpers, markers);
+const brush = new THREE.Mesh(new THREE.SphereGeometry(1,24,16), new THREE.MeshBasicMaterial({transparent:true, opacity:0.28, depthWrite:false}));
+brush.visible = false; scene.add(brush);
+
+function resize(){ const w=vp.clientWidth, h=vp.clientHeight; if (!w||!h) return; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(vp);
+(function loop(){ controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const disposeGroup = grp => { while (grp.children.length){ const c=grp.children.pop(); c.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); } };
+
+function bbox(pos){
+  const mn=[Infinity,Infinity,Infinity], mx=[-Infinity,-Infinity,-Infinity];
+  for (let i=0; i<pos.length; i+=3) for (let a=0; a<3; a++){ mn[a]=Math.min(mn[a],pos[i+a]); mx[a]=Math.max(mx[a],pos[i+a]); }
+  return {mn, mx, size:[mx[0]-mn[0], mx[1]-mn[1], mx[2]-mn[2]]};
+}
+
+function buildPartMesh(){
+  if (partMesh){ scene.remove(partMesh); partMesh.geometry.dispose(); partMesh.material.dispose(); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(S.pos.slice(), 3));
+  const col = new Float32Array(S.pos.length); for (let i=0; i<col.length; i+=3){ col[i]=0.70; col[i+1]=0.73; col[i+2]=0.77; }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  geo.computeVertexNormals();
+  partMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({vertexColors:true, metalness:0.05, roughness:0.62, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1}));
+  scene.add(partMesh);
+
+  disposeGroup(helpers);
+  const b = bbox(S.pos), L = Math.max(...b.size);
+  const grid = new THREE.GridHelper(L*3, 30, 0x8a949e, 0x8a949e);
+  grid.material.transparent = true; grid.material.opacity = 0.25;
+  grid.rotation.x = Math.PI/2; grid.position.set((b.mn[0]+b.mx[0])/2, (b.mn[1]+b.mx[1])/2, b.mn[2]-0.001*L);
+  const axes = new THREE.AxesHelper(L*0.18); axes.position.set(b.mn[0]-L*0.08, b.mn[1]-L*0.08, b.mn[2]);
+  helpers.add(grid, axes);
+
+  let vol=0; const p=S.pos;
+  for (let i=0; i<p.length; i+=9) vol += (p[i]*(p[i+4]*p[i+8]-p[i+5]*p[i+7]) - p[i+1]*(p[i+3]*p[i+8]-p[i+5]*p[i+6]) + p[i+2]*(p[i+3]*p[i+7]-p[i+4]*p[i+6]))/6;
+  S.volume = Math.abs(vol);
+  $('partInfo').textContent = `${S.name} · ${(p.length/9).toLocaleString()} triangles\n${b.size.map(v=>v.toFixed(1)).join(' × ')} mm · ${(S.volume/1000).toFixed(1)} cm³`;
+  $('partInfo').style.whiteSpace = 'pre-line';
+}
+
+function fitCamera(){
+  const b = bbox(S.pos), L = Math.max(...b.size);
+  const c = new THREE.Vector3((b.mn[0]+b.mx[0])/2, (b.mn[1]+b.mx[1])/2, (b.mn[2]+b.mx[2])/2);
+  controls.target.copy(c);
+  // tall narrow views (phones) need the camera further back to fit the part's width
+  camera.position.copy(c).add(new THREE.Vector3(1.1,-1.6,0.9).normalize().multiplyScalar(L*2.3/Math.min(1, Math.max(0.45, camera.aspect))));
+  camera.near = L/500; camera.far = L*100; camera.updateProjectionMatrix();
+}
+
+function refreshMarkers(){
+  disposeGroup(markers);
+  const g = S.grid; if (!g) return;
+  const fx = resolvePatches(S.fixed, g), ld = resolvePatches(S.loads, g);
+  const mk = (sel, color) => {
+    const pts = []; for (let i=0; i<g.nn; i++) if (sel[i]) pts.push(g.nodeXYZ[i*3], g.nodeXYZ[i*3+1], g.nodeXYZ[i*3+2]);
+    if (!pts.length) return 0;
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    markers.add(new THREE.Points(geo, new THREE.PointsMaterial({color:new THREE.Color(color), size:g.h*0.8})));
+    return pts.length/3;
+  };
+  const nf = mk(fx, css('--support')), nl = mk(ld, css('--accent'));
+  $('fixCount').textContent = nf; $('loadCount').textContent = nl;
+  const d = loadDir();
+  if (nl && d){
+    const c = new THREE.Vector3();
+    for (let i=0; i<g.nn; i++) if (ld[i]) c.add(new THREE.Vector3(g.nodeXYZ[i*3], g.nodeXYZ[i*3+1], g.nodeXYZ[i*3+2]));
+    c.divideScalar(nl);
+    const L = g.h*Math.max(...g.n), len = L*0.3;
+    const dir = new THREE.Vector3(...d);
+    markers.add(new THREE.ArrowHelper(dir, c.clone().addScaledVector(dir, -len), len, new THREE.Color(css('--accent')).getHex(), len*0.25, len*0.13));
+  }
+  if (S.result && S.result.peakPos){
+    const R = S.result, s = new THREE.Mesh(new THREE.SphereGeometry(R.g.h*1.6, 20, 14), new THREE.MeshBasicMaterial({color:0xffffff, wireframe:true, transparent:true, opacity:0.85}));
+    s.position.set(...R.peakPos); markers.add(s);
+  }
+}
+
+/* ---------- inputs ---------- */
+const matSel = $('material');
+MATERIALS.forEach((m,i)=>matSel.add(new Option(m.name, i)));
+matSel.add(new Option('Custom', 'custom'));
+function applyMaterial(){
+  const m = MATERIALS[matSel.value]; if (!m) return;
+  $('mE').value=m.E; $('mNu').value=m.nu; $('mRho').value=m.rho; $('mSy').value=m.Sy;
+}
+function material(){ return {E:+$('mE').value, nu:+$('mNu').value, rho:+$('mRho').value, Sy:+$('mSy').value, name: matSel.value==='custom' ? 'Custom material' : MATERIALS[matSel.value].name}; }
+function loadDir(){ const v=[+$('dx').value||0, +$('dy').value||0, +$('dz').value||0], l=Math.hypot(...v); return l>0 ? v.map(x=>x/l) : null; }
+function forceN(){ const v = Math.max(0, +$('forceVal').value||0); return $('forceUnit').value==='kg' ? v*G : v; }
+function updateForceText(){ $('forceN').textContent = $('forceUnit').value==='kg' ? `= ${forceN().toFixed(1)} N` : ''; }
+
+function setMsg(t, err){ $('msg').textContent = t; $('msg').classList.toggle('err', !!err); }
+function markStale(){ if (S.result) $('stale').hidden = false; }
+
+function setMode(m){
+  S.mode = m;
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode===m));
+  brush.material.color.set(css(m==='load' ? '--accent' : '--support'));
+  if (m==='orbit') brush.visible = false;
+  $('hint').textContent = m==='orbit' ? (matchMedia('(pointer: coarse)').matches ? 'Drag to orbit, pinch to zoom, two-finger drag to pan.' : 'Drag to orbit, scroll to zoom, right-drag to pan.')
+    : m==='fixed' ? 'Click the part to mark surfaces that are held fixed (bolted, clamped, welded). Dragging still orbits.'
+    : 'Click the part where the force is applied. The load is shared evenly over the painted nodes.';
+}
+
+function revoxel(){
+  if (!S.pos) return;
+  S.grid = voxelize(S.pos, +$('detail').value);
+  const g = S.grid;
+  $('meshInfo').textContent = `${g.nel.toLocaleString()} elements · ${g.h.toFixed(2)} mm voxels`;
+  refreshMarkers(); rebuildGridView(); markStale();
+}
+
+function loadPart(raw, name, keepPatches){
+  S.rawPos = raw; S.name = name; S.result = null;
+  if (!keepPatches){ S.fixed = [{type:'face', axis:2, side:-1}]; S.loads = []; }
+  applyUnits();
+}
+function applyUnits(){
+  const k = +$('units').value;
+  S.pos = new Float32Array(S.rawPos.length); for (let i=0; i<S.pos.length; i++) S.pos[i] = S.rawPos[i]*k;
+  S.result = null; $('stale').hidden = true;
+  clearTrim(); $('trimBtn').disabled = true; updateTrimLabel();
+  buildPartMesh(); fitCamera(); revoxel(); showResult();
+}
+
+/* ---------- picking ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pick(e){
+  if (!partMesh) return null;
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObject(partMesh)[0];
+  return hit ? hit.point : null;
+}
+let down = null;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY, e.button]; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down) return;
+  const moved = Math.hypot(e.clientX-down[0], e.clientY-down[1]), btn = down[2]; down = null;
+  if (moved > 5 || btn !== 0 || S.mode === 'orbit') return;
+  const p = pick(e); if (!p) return;
+  (S.mode==='fixed' ? S.fixed : S.loads).push({type:'sphere', p:[p.x,p.y,p.z], r:+$('brush').value});
+  markStale(); refreshMarkers();
+});
+renderer.domElement.addEventListener('pointermove', e => {
+  if (S.mode === 'orbit') return;
+  const p = pick(e); brush.visible = !!p;
+  if (p){ brush.position.copy(p); brush.scale.setScalar(+$('brush').value); }
+});
+renderer.domElement.addEventListener('pointerleave', () => { brush.visible = false; });
+
+/* ---------- run ---------- */
+function run(){
+  if (S.running){ S.running.terminate(); S.running = null; $('runBtn').textContent = 'Run analysis'; setMsg('Cancelled.'); $('barFill').style.width='0'; return; }
+  const g = S.grid; if (!g) return setMsg('Load a part first.', true);
+  const mat = material();
+  if (!(mat.E>0) || !(mat.nu>=0 && mat.nu<0.5) || !(mat.Sy>0) || !(mat.rho>=0)) return setMsg('Check the material values: modulus and yield must be above 0, Poisson’s ratio between 0 and 0.49.', true);
+  const fsel = resolvePatches(S.fixed, g), lsel = resolvePatches(S.loads, g);
+  if (!fsel.some(Boolean)) return setMsg('Add at least one fixed support so the part cannot float away.', true);
+  const F = forceN(), dir = loadDir(), grav = $('gravity').checked;
+  const hasLoad = F>0 && lsel.some(Boolean);
+  if (F>0 && lsel.some(Boolean) && !dir) return setMsg('Set a load direction (x, y, z cannot all be 0).', true);
+  if (!hasLoad && !grav) return setMsg('Paint a load area, or turn on self-weight.', true);
+
+  // keep only elements connected to a support
+  const nel=g.nel, nn=g.nn, cnt=new Int32Array(nn+1);
+  for (let i=0; i<nel*8; i++) cnt[g.conn[i]+1]++;
+  for (let i=0; i<nn; i++) cnt[i+1]+=cnt[i];
+  const ne = new Int32Array(nel*8), fill = cnt.slice(0,nn);
+  for (let e=0; e<nel; e++) for (let a=0; a<8; a++) ne[fill[g.conn[e*8+a]]++] = e;
+  const seen = new Uint8Array(nel), q = [];
+  for (let e=0; e<nel; e++) for (let a=0; a<8; a++) if (fsel[g.conn[e*8+a]] && !seen[e]){ seen[e]=1; q.push(e); }
+  for (let h=0; h<q.length; h++){
+    const e=q[h];
+    for (let a=0; a<8; a++){ const nd=g.conn[e*8+a]; for (let k=cnt[nd]; k<cnt[nd+1]; k++){ const e2=ne[k]; if (!seen[e2]){ seen[e2]=1; q.push(e2); } } }
+  }
+  const act = Int32Array.from(q).sort();
+  const newId = new Int32Array(nn).fill(-1); let m=0;
+  for (const e of act) for (let a=0; a<8; a++){ const nd=g.conn[e*8+a]; if (newId[nd]<0) newId[nd]=m++; }
+  const conn = new Int32Array(act.length*8);
+  act.forEach((e,i)=>{ for (let a=0; a<8; a++) conn[i*8+a]=newId[g.conn[e*8+a]]; });
+  const fixed = new Uint8Array(m*3), f = new Float64Array(m*3);
+  for (let i=0; i<nn; i++) if (fsel[i] && newId[i]>=0){ const b=newId[i]*3; fixed[b]=fixed[b+1]=fixed[b+2]=1; }
+  let nl=0; for (let i=0; i<nn; i++) if (lsel[i] && newId[i]>=0) nl++;
+  if (F>0 && lsel.some(Boolean) && !nl) return setMsg('The load area is on a piece that is not connected to any support.', true);
+  if (nl) for (let i=0; i<nn; i++) if (lsel[i] && newId[i]>=0){ const b=newId[i]*3; for (let a=0; a<3; a++) f[b+a]+=F*dir[a]/nl; }
+  const hm = g.h/1000;
+  if (grav){ const w = mat.rho*hm*hm*hm*G/8; for (let i=0; i<conn.length; i++) f[conn[i]*3+2] -= w; }
+
+  const {Ke, Bg, D} = hexMatrices(mat.nu);
+  const tol = 1e-6, worker = new Worker(workerURL);
+  S.running = worker; $('runBtn').textContent = 'Cancel';
+  setMsg(`Solving ${act.length.toLocaleString()} elements…`); $('barFill').style.width = '3%';
+  const dropped = nel - act.length, t0 = performance.now();
+  worker.onmessage = ev => {
+    const d = ev.data;
+    if (d.type === 'progress'){
+      $('barFill').style.width = Math.min(98, Math.max(3, 100*Math.log(d.rel)/Math.log(tol))) + '%';
+      setMsg(`Solving… iteration ${d.it}, residual ${d.rel.toExponential(1)}`);
+      return;
+    }
+    worker.terminate(); S.running = null; $('runBtn').textContent = 'Run analysis'; $('barFill').style.width = '100%';
+    const secs = ((performance.now()-t0)/1000).toFixed(1);
+    if (!isFinite(d.rel) || d.rel > 1e-3){ setMsg(`The solver did not converge (residual ${d.rel.toExponential(1)}). Add supports so the part cannot rotate or slide.`, true); return; }
+    setMsg(`Done in ${secs} s · ${d.it} iterations` + (dropped ? ` · ${dropped} unsupported elements ignored` : ''));
+    finishResult({g, act, newId, m, u:d.u, vm:d.vm, mat, F: nl ? F : 0, grav, it:d.it});
+  };
+  worker.postMessage({Ke, Bg, D, conn, nNodes:m, fixed, f, E:mat.E*1e9, h:hm, tol, maxIter:8000});
+}
+
+function finishResult(R){
+  const g = R.g;
+  // nodal von Mises = average of attached elements
+  const nvm = new Float64Array(R.m), nc = new Uint8Array(R.m);
+  let peak=0, pe=0;
+  for (let i=0; i<R.act.length; i++){
+    const v = R.vm[i]; if (v>peak){ peak=v; pe=i; }
+    for (let a=0; a<8; a++){ const nd=R.newId[g.conn[R.act[i]*8+a]]; nvm[nd]+=v; nc[nd]++; }
+  }
+  for (let i=0; i<R.m; i++) if (nc[i]) nvm[i]/=nc[i];
+  let maxU = 0;
+  for (let i=0; i<R.m; i++) maxU = Math.max(maxU, Math.hypot(R.u[i*3], R.u[i*3+1], R.u[i*3+2]));
+  const vox = g.elemVox[R.act[pe]], [nx,ny] = g.n;
+  R.peakPos = [g.o[0]+(vox%nx+0.5)*g.h, g.o[1]+(Math.floor(vox/nx)%ny+0.5)*g.h, g.o[2]+(Math.floor(vox/(nx*ny))+0.5)*g.h];
+  R.peak = peak; R.maxU = maxU*1000; R.nvm = nvm;
+  const sorted = Float32Array.from(R.vm).sort();
+  R.p99 = sorted[Math.min(sorted.length-1, Math.floor(sorted.length*0.99))] || peak;
+
+  // interpolate node fields onto STL vertices
+  const gridMap = new Int32Array(g.NX*g.NY*g.NZ).fill(-1);
+  for (let i=0; i<g.nn; i++) if (R.newId[i]>=0) gridMap[g.nodeGrid[i]] = R.newId[i];
+  const P = S.pos, nv = P.length/3, ids = new Int32Array(nv*8).fill(-1), ws = new Float32Array(nv*8);
+  const [nX,nY,nZ] = g.n, NX=g.NX, NY=g.NY, cl=(v,a,b)=>v<a?a:(v>b?b:v);
+  for (let v=0; v<nv; v++){
+    const fx=(P[v*3]-g.o[0])/g.h, fy=(P[v*3+1]-g.o[1])/g.h, fz=(P[v*3+2]-g.o[2])/g.h;
+    const i0=cl(Math.floor(fx),0,nX-1), j0=cl(Math.floor(fy),0,nY-1), k0=cl(Math.floor(fz),0,nZ-1);
+    const tx=cl(fx-i0,0,1), ty=cl(fy-j0,0,1), tz=cl(fz-k0,0,1);
+    let sum=0;
+    for (let c=0; c<8; c++){
+      const a=c&1, b=(c>>1)&1, d=(c>>2)&1;
+      const id = gridMap[(i0+a)+NX*((j0+b)+NY*(k0+d))];
+      if (id<0) continue;
+      const w = (a?tx:1-tx)*(b?ty:1-ty)*(d?tz:1-tz);
+      ids[v*8+c]=id; ws[v*8+c]=w; sum+=w;
+    }
+    if (sum > 1e-6){ for (let c=0; c<8; c++) ws[v*8+c]/=sum; continue; }
+    let best=-1, bd=Infinity;
+    for (let dk=-1; dk<=2; dk++) for (let dj=-1; dj<=2; dj++) for (let di=-1; di<=2; di++){
+      const i=i0+di, j=j0+dj, k=k0+dk; if (i<0||j<0||k<0||i>nX||j>nY||k>nZ) continue;
+      const id = gridMap[i+NX*(j+NY*k)]; if (id<0) continue;
+      const dd=(i-fx)**2+(j-fy)**2+(k-fz)**2; if (dd<bd){ bd=dd; best=id; }
+    }
+    for (let c=0; c<8; c++){ ids[v*8+c]=-1; ws[v*8+c]=0; }
+    if (best>=0){ ids[v*8]=best; ws[v*8]=1; }
+  }
+  R.vIds = ids; R.vW = ws;
+  const vu = new Float32Array(nv*3), vs = new Float32Array(nv), vOk = new Uint8Array(nv);
+  for (let v=0; v<nv; v++) for (let c=0; c<8; c++){
+    const id=ids[v*8+c]; if (id<0) continue; const w=ws[v*8+c];
+    vOk[v]=1; vs[v]+=w*nvm[id];
+    for (let a=0; a<3; a++) vu[v*3+a]+=w*R.u[id*3+a]*1000;
+  }
+  R.vU = vu; R.vS = vs; R.vOk = vOk;
+  S.result = R; $('stale').hidden = true;
+  if (S.userRun && isPhone()) setTab('view');   // show the result the user just asked for
+  S.userRun = false;
+  clearTrim(); $('trimBtn').disabled = false; updateTrimLabel();
+  if (+$('deform').value === 0) $('deform').value = 40;
+  showResult(); refreshMarkers();
+}
+
+/* ---------- colours and results ---------- */
+const STOPS = [[0.13,0.29,0.80],[0.09,0.60,0.88],[0.20,0.74,0.46],[0.92,0.85,0.20],[0.96,0.55,0.14],[0.84,0.14,0.12]];
+const OVER = [0.55,0.10,0.58], NB = 10;
+function ramp(t){
+  const x = Math.min(0.9999, Math.max(0, t))*(STOPS.length-1), i = Math.floor(x), f = x-i;
+  return STOPS[i].map((c,k)=>c+(STOPS[i+1][k]-c)*f);
+}
+function colourFor(v, max, sy){
+  if (v > sy) return OVER;
+  const band = Math.min(NB-1, Math.floor(v/max*NB));
+  return ramp((band+0.5)/NB);
+}
+const rgb = c => `rgb(${c.map(x=>Math.round(x*255)).join(',')})`;
+
+function showResult(){
+  const R = S.result;
+  const set = (id, html) => { $(id).innerHTML = html; };
+  if (!R){
+    ['rSF','rPeak','rDisp','rLoad','rMass'].forEach(id=>set(id,'—'));
+    $('rPeakAt').textContent=''; $('rLoadNote').textContent=''; $('rMat').textContent='';
+    const chip=$('rChip'); chip.className='chip idle'; chip.textContent='Not run';
+    $('legend').hidden = true;
+    if (S.pos){ set('rMass', S.volume ? `${(S.volume*1e-9*(+$('mRho').value)*1000).toFixed(1)}<small>g</small>` : '—'); }
+    $('deformOut').textContent = 'off';
+    return;
+  }
+  const sy = R.mat.Sy*1e6, max = $('scaleMode').value==='yield' ? sy : Math.max(R.peak, 1e-9);
+  const col = partMesh.geometry.attributes.color, ca = col.array;
+  for (let v=0; v<R.vS.length; v++){
+    const c = R.vOk[v] ? colourFor(R.vS[v], max, sy) : [0.6,0.6,0.6];
+    ca[v*3]=c[0]; ca[v*3+1]=c[1]; ca[v*3+2]=c[2];
+  }
+  col.needsUpdate = true;
+
+  const sf = sy/R.peak, chip = $('rChip');
+  set('rSF', isFinite(sf) ? sf.toFixed(2) : '∞');
+  chip.className = 'chip ' + (sf>=2 ? 'ok' : sf>=1 ? 'warn' : 'bad');
+  chip.textContent = sf>=2 ? 'Safe' : sf>=1 ? 'Marginal' : 'Will yield';
+  set('rPeak', `${(R.peak/1e6).toFixed(1)}<small>MPa</small>`);
+  $('rPeakAt').textContent = `at ${R.peakPos.map(v=>v.toFixed(1)).join(', ')} mm`;
+  set('rDisp', `${R.maxU < 0.01 ? R.maxU.toExponential(2) : R.maxU.toFixed(3)}<small>mm</small>`);
+  const wN = S.volume*1e-9*R.mat.rho*G;
+  set('rLoad', `${R.F.toFixed(1)}<small>N</small>`);
+  $('rLoadNote').textContent = R.grav ? `+ ${wN.toFixed(2)} N self-weight` : 'gravity off';
+  set('rMass', `${(S.volume*1e-9*R.mat.rho*1000).toFixed(1)}<small>g</small>`);
+  $('rMat').textContent = R.mat.name;
+
+  const lg = $('legend'); lg.hidden = false;
+  let html = '<h3>von Mises, MPa</h3>';
+  if (R.peak > sy) html += `<div class="lr"><span class="sw" style="background:${rgb(OVER)}"></span><span class="mono">&gt; ${(sy/1e6).toFixed(0)} yield</span></div>`;
+  for (let b=NB-1; b>=0; b--) html += `<div class="lr"><span class="sw" style="background:${rgb(ramp((b+0.5)/NB))}"></span><span class="mono">${(max*b/NB/1e6).toFixed(1)} – ${(max*(b+1)/NB/1e6).toFixed(1)}</span></div>`;
+  lg.innerHTML = html;
+  applyDeform(); rebuildGridView();
+}
+
+function applyDeform(){
+  const R = S.result, pct = +$('deform').value, attr = partMesh.geometry.attributes.position, a = attr.array;
+  if (!R || pct===0 || R.maxU===0){
+    a.set(S.pos); $('deformOut').textContent = 'off';
+  } else {
+    const L = Math.max(...bbox(S.pos).size), k = (pct/100)*(0.12*L)/R.maxU;
+    for (let i=0; i<a.length; i++) a[i] = S.pos[i] + k*R.vU[i];
+    $('deformOut').textContent = `×${k<10 ? k.toFixed(1) : Math.round(k).toLocaleString()}`;
+  }
+  attr.needsUpdate = true; partMesh.geometry.computeVertexNormals(); partMesh.geometry.computeBoundingSphere();
+}
+
+function rebuildGridView(){
+  if (gridMesh){ scene.remove(gridMesh); gridMesh.geometry.dispose(); gridMesh.material.dispose(); gridMesh = null; }
+  const show = $('showGrid').checked;
+  if (partMesh) partMesh.visible = !show;
+  if (!show) return;
+  const R = S.result, g = R ? R.g : S.grid; if (!g) return;
+  const list = R ? R.act : null, count = list ? list.length : g.nel;
+  gridMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(g.h*0.94, g.h*0.94, g.h*0.94), new THREE.MeshStandardMaterial({roughness:0.7}), count);
+  const M = new THREE.Matrix4(), C = new THREE.Color(), [nx,ny] = g.n;
+  const sy = R ? R.mat.Sy*1e6 : 0, max = R ? ($('scaleMode').value==='yield' ? sy : R.peak) : 1;
+  for (let i=0; i<count; i++){
+    const e = list ? list[i] : i, v = g.elemVox[e];
+    M.makeTranslation(g.o[0]+(v%nx+0.5)*g.h, g.o[1]+(Math.floor(v/nx)%ny+0.5)*g.h, g.o[2]+(Math.floor(v/(nx*ny))+0.5)*g.h);
+    gridMesh.setMatrixAt(i, M);
+    const c = R ? colourFor(R.vm[i], max, sy) : [0.70,0.73,0.77];
+    gridMesh.setColorAt(i, C.setRGB(c[0], c[1], c[2]));
+  }
+  scene.add(gridMesh);
+}
+
+/* ---------- trim to stressed areas ---------- */
+let T = null;   // {pos, mesh, volume}
+
+// Surface nets over a voxel mask (fine voxel centres at o + (i+0.5)h), then Taubin smoothing
+function surfaceNets(mask, n, o, h, smoothIter){
+  const X=n[0]+2, Y=n[1]+2, Z=n[2]+2, XY=X*Y, iso=0.5;
+  const m = (i,j,k) => (i<0||j<0||k<0||i>=n[0]||j>=n[1]||k>=n[2]) ? 0 : mask[i+n[0]*(j+n[1]*k)];
+  const F = new Float32Array(X*Y*Z);
+  for (let k=0; k<Z; k++) for (let j=0; j<Y; j++) for (let i=0; i<X; i++){
+    const a=i-1, b=j-1, c=k-1;
+    F[i+X*(j+Y*k)] = 0.5*m(a,b,c) + (m(a-1,b,c)+m(a+1,b,c)+m(a,b-1,c)+m(a,b+1,c)+m(a,b,c-1)+m(a,b,c+1))/12;
+  }
+  const EDGES = [[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  const off = [0,1,X,X+1,XY,XY+1,XY+X,XY+X+1], vals = new Float32Array(8);
+  const vid = new Int32Array(X*Y*Z).fill(-1), V = [];
+  for (let k=0; k<Z-1; k++) for (let j=0; j<Y-1; j++) for (let i=0; i<X-1; i++){
+    const p = i+X*(j+Y*k); let bits = 0;
+    for (let c=0; c<8; c++){ vals[c]=F[p+off[c]]; if (vals[c]>iso) bits |= 1<<c; }
+    if (bits===0 || bits===255) continue;
+    let sx=0, sy=0, sz=0, cnt=0;
+    for (const [a,b] of EDGES){
+      if (((bits>>a)&1) === ((bits>>b)&1)) continue;
+      const t = (iso-vals[a])/(vals[b]-vals[a]);
+      sx += (a&1) + t*((b&1)-(a&1)); sy += ((a>>1)&1) + t*(((b>>1)&1)-((a>>1)&1)); sz += ((a>>2)&1) + t*(((b>>2)&1)-((a>>2)&1));
+      cnt++;
+    }
+    vid[p] = V.length/3;
+    V.push(o[0]+(i+sx/cnt-0.5)*h, o[1]+(j+sy/cnt-0.5)*h, o[2]+(k+sz/cnt-0.5)*h);
+  }
+  const tris = [], step = [1, X, XY];
+  for (let k=0; k<Z-1; k++) for (let j=0; j<Y-1; j++) for (let i=0; i<X-1; i++){
+    const p = i+X*(j+Y*k), inside = F[p]>iso, c = [i,j,k];
+    for (let a=0; a<3; a++){
+      if (c[(a+1)%3] < 1 || c[(a+2)%3] < 1) continue;
+      if ((F[p+step[a]]>iso) === inside) continue;
+      const su = step[(a+1)%3], sv = step[(a+2)%3];
+      const q = [vid[p-su-sv], vid[p-sv], vid[p], vid[p-su]];
+      if (q.some(v=>v<0)) continue;
+      if (inside) tris.push(q[0],q[1],q[2], q[0],q[2],q[3]);
+      else tris.push(q[0],q[2],q[1], q[0],q[3],q[2]);
+    }
+  }
+  const P = Float64Array.from(V), nv = P.length/3, acc = new Float64Array(nv*3), deg = new Float64Array(nv);
+  for (let it=0; it<smoothIter*2; it++){
+    const f = (it&1) ? -0.53 : 0.5;
+    acc.fill(0); deg.fill(0);
+    for (let t=0; t<tris.length; t+=3) for (let e=0; e<3; e++){
+      const a=tris[t+e], b=tris[t+(e+1)%3];
+      acc[a*3]+=P[b*3]; acc[a*3+1]+=P[b*3+1]; acc[a*3+2]+=P[b*3+2]; deg[a]++;
+      acc[b*3]+=P[a*3]; acc[b*3+1]+=P[a*3+1]; acc[b*3+2]+=P[a*3+2]; deg[b]++;
+    }
+    for (let v=0; v<nv; v++) if (deg[v]) for (let c=0; c<3; c++) P[v*3+c] += f*(acc[v*3+c]/deg[v] - P[v*3+c]);
+  }
+  const out = new Float32Array(tris.length*3);
+  for (let i=0; i<tris.length; i++){ out[i*3]=P[tris[i]*3]; out[i*3+1]=P[tris[i]*3+1]; out[i*3+2]=P[tris[i]*3+2]; }
+  return out;
+}
+
+function meshVolume(p){
+  let vol = 0;
+  for (let i=0; i<p.length; i+=9) vol += (p[i]*(p[i+4]*p[i+8]-p[i+5]*p[i+7]) - p[i+1]*(p[i+3]*p[i+8]-p[i+5]*p[i+6]) + p[i+2]*(p[i+3]*p[i+7]-p[i+4]*p[i+6]))/6;
+  return Math.abs(vol);
+}
+
+function trimPart(){
+  const R = S.result; if (!R) return;
+  const g = R.g, pct = +$('trimPct').value, margin = Math.max(0, +$('trimMargin').value||0);
+  const add = Math.max(0, +$('addMm').value||0);
+  const fsel = resolvePatches(S.fixed, g), lsel = resolvePatches(S.loads, g);
+  const f0 = voxelize(S.pos, Math.min(g.N*2, 200));
+  const f = padGrid(f0, add > 0 ? Math.ceil((add + g.h)/f0.h) + 1 : 0);
+  const [fx,fy,fz] = f.n, hf = f.h, nf = fx*fy*fz;
+  const rr = margin + g.h*0.87, rc = Math.ceil(rr/hf), rr2 = rr*rr;
+
+  // reinforcement grows new material outside the original surface around high-stress elements,
+  // but never over a support or load surface, so the part still fits where it is mounted and loaded
+  let addOpt = null;
+  if (add > 0){
+    const ban = new Uint8Array(nf), br = add + hf, bc = Math.ceil(br/hf), br2 = br*br;
+    for (let i=0; i<g.nn; i++){
+      if (!fsel[i] && !lsel[i]) continue;
+      const px=g.nodeXYZ[i*3], py=g.nodeXYZ[i*3+1], pz=g.nodeXYZ[i*3+2];
+      const ci=Math.floor((px-f.o[0])/hf), cj=Math.floor((py-f.o[1])/hf), ck=Math.floor((pz-f.o[2])/hf);
+      for (let k=Math.max(0,ck-bc); k<=Math.min(fz-1,ck+bc); k++) for (let j=Math.max(0,cj-bc); j<=Math.min(fy-1,cj+bc); j++) for (let i2=Math.max(0,ci-bc); i2<=Math.min(fx-1,ci+bc); i2++){
+        const dx=f.o[0]+(i2+0.5)*hf-px, dy=f.o[1]+(j+0.5)*hf-py, dz=f.o[2]+(k+0.5)*hf-pz;
+        if (dx*dx+dy*dy+dz*dz <= br2) ban[i2+fx*(j+fy*k)] = 1;
+      }
+    }
+    for (const p of [...S.fixed, ...S.loads]){
+      if (p.type !== 'face') continue;
+      let ext = p.side<0 ? Infinity : -Infinity;
+      for (let i=0; i<g.nn; i++){ const c=g.nodeXYZ[i*3+p.axis]; ext = p.side<0 ? Math.min(ext,c) : Math.max(ext,c); }
+      for (let q=0; q<nf; q++){
+        const idx = [q%fx, Math.floor(q/fx)%fy, Math.floor(q/(fx*fy))][p.axis];
+        if (p.side*(f.o[p.axis]+(idx+0.5)*hf-ext) > -0.5*hf) ban[q] = 1;
+      }
+    }
+    const ra = add + 0.5*g.h;
+    addOpt = {thr: +$('addPct').value/100*R.p99, r2: ra*ra, rc: Math.ceil(ra/hf), ban};
+  }
+
+  // low stress near a free end can cut the load off from the supports: lower the threshold until it is connected
+  let usePct = pct, reach, nReach;
+  for (let attempt=0; attempt<12; attempt++){
+    const r = trimMask(R, g, f, fsel, lsel, usePct/100*R.p99, rr, rc, rr2, addOpt);
+    reach = r.reach; nReach = r.nReach;
+    if (!r.loadCells || r.loadReached >= 0.95*r.loadCells || usePct <= 0.5) break;
+    usePct = Math.max(0.5, usePct*0.7);
+  }
+  if (!nReach){ $('trimInfo').textContent = 'Nothing left to keep. Lower the threshold or add supports.'; return; }
+  let removed = 0, added = 0;
+  for (let q=0; q<nf; q++){ if (f.solid[q] && !reach[q]) removed++; else if (reach[q] && !f.solid[q]) added++; }
+  const cell = hf*hf*hf/1000;
+  const pos = surfaceNets(reach, f.n, f.o, hf, +$('trimSmooth').value);
+  showTrim(pos, removed*cell, added*cell);
+  if (usePct < pct) $('trimInfo').textContent += ` The removal threshold was lowered to ${usePct.toFixed(1)}% so the load stays connected to the supports.`;
+}
+
+function padGrid(f, P){
+  if (!P) return f;
+  const [nx,ny,nz] = f.n, n = [nx+2*P, ny+2*P, nz+2*P], solid = new Uint8Array(n[0]*n[1]*n[2]);
+  for (let k=0; k<nz; k++) for (let j=0; j<ny; j++) for (let i=0; i<nx; i++)
+    if (f.solid[i+nx*(j+ny*k)]) solid[(i+P)+n[0]*((j+P)+n[1]*(k+P))] = 1;
+  return {h:f.h, o:f.o.map(v=>v-P*f.h), n, solid};
+}
+
+function trimMask(R, g, f, fsel, lsel, thr, rr, rc, rr2, addOpt){
+  const [fx,fy,fz] = f.n, hf = f.h, nf = fx*fy*fz, [nx,ny] = g.n;
+  const keep = new Uint8Array(nf), anchor = new Uint8Array(nf), loadC = new Uint8Array(nf);
+  for (let i=0; i<R.act.length; i++){
+    const e = R.act[i]; let isFix=false, isLoad=false;
+    for (let a=0; a<8; a++){ const nd=g.conn[e*8+a]; if (fsel[nd]) isFix=true; if (lsel[nd]) isLoad=true; }
+    const reinforce = !!addOpt && R.vm[i] >= addOpt.thr;
+    if (R.vm[i] < thr && !isFix && !isLoad && !reinforce) continue;
+    const v = g.elemVox[e], rcu = reinforce ? Math.max(rc, addOpt.rc) : rc;
+    const cx=g.o[0]+(v%nx+0.5)*g.h, cy=g.o[1]+(Math.floor(v/nx)%ny+0.5)*g.h, cz=g.o[2]+(Math.floor(v/(nx*ny))+0.5)*g.h;
+    const ci=Math.floor((cx-f.o[0])/hf), cj=Math.floor((cy-f.o[1])/hf), ck=Math.floor((cz-f.o[2])/hf);
+    for (let k=Math.max(0,ck-rcu); k<=Math.min(fz-1,ck+rcu); k++){
+      const dz=f.o[2]+(k+0.5)*hf-cz;
+      for (let j=Math.max(0,cj-rcu); j<=Math.min(fy-1,cj+rcu); j++){
+        const dy=f.o[1]+(j+0.5)*hf-cy;
+        for (let i2=Math.max(0,ci-rcu); i2<=Math.min(fx-1,ci+rcu); i2++){
+          const dx=f.o[0]+(i2+0.5)*hf-cx, q=i2+fx*(j+fy*k), d2=dx*dx+dy*dy+dz*dz;
+          if (f.solid[q]){
+            if (d2 > rr2) continue;
+            keep[q]=1; if (isFix) anchor[q]=1; if (isLoad) loadC[q]=1;
+          } else if (reinforce && d2 <= addOpt.r2 && !addOpt.ban[q]) keep[q]=1;
+        }
+      }
+    }
+  }
+  // keep only material connected to a support
+  const reach = new Uint8Array(nf), queue = [];
+  for (let q=0; q<nf; q++) if (anchor[q]){ reach[q]=1; queue.push(q); }
+  for (let h=0; h<queue.length; h++){
+    const q=queue[h], i=q%fx, j=Math.floor(q/fx)%fy, k=Math.floor(q/(fx*fy));
+    const nb = [i>0?q-1:-1, i<fx-1?q+1:-1, j>0?q-fx:-1, j<fy-1?q+fx:-1, k>0?q-fx*fy:-1, k<fz-1?q+fx*fy:-1];
+    for (const r of nb) if (r>=0 && keep[r] && !reach[r]){ reach[r]=1; queue.push(r); }
+  }
+  let loadCells = 0, loadReached = 0;
+  for (let q=0; q<nf; q++) if (loadC[q]){ loadCells++; if (reach[q]) loadReached++; }
+  return {reach, nReach: queue.length, loadCells, loadReached};
+}
+
+function showTrim(pos, removedCm3, addedCm3){
+  clearTrim(true);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0x8fa6bd, metalness:0.15, roughness:0.5}));
+  scene.add(mesh);
+  partMesh.material.transparent = true; partMesh.material.opacity = 0.16; partMesh.material.depthWrite = false;
+  if (gridMesh) gridMesh.visible = false;
+  const vol = meshVolume(pos), rho = S.result.mat.rho;
+  T = {pos, mesh, volume: vol};
+  $('trimInfo').textContent = `Redesigned part: ${(vol/1000).toFixed(1)} cm³, ${(vol*1e-9*rho*1000).toFixed(1)} g, ${Math.round(100*vol/S.volume)}% of the original volume. Removed about ${removedCm3.toFixed(1)} cm³ of low-stress material` + (addedCm3 > 0.005 ? ` and added about ${addedCm3.toFixed(1)} cm³ to high-stress areas` : '') + `. The original is shown faded. Check it with “Analyse redesigned part”, since stress shifts once the shape changes.`;
+  $('trimSave').disabled = false; $('trimRun').disabled = false; $('trimHide').hidden = false;
+}
+
+function clearTrim(keepInfo){
+  if (T){ scene.remove(T.mesh); T.mesh.geometry.dispose(); T.mesh.material.dispose(); T = null; }
+  if (partMesh){ partMesh.material.transparent = false; partMesh.material.opacity = 1; partMesh.material.depthWrite = true; }
+  if (gridMesh) gridMesh.visible = true;
+  $('trimSave').disabled = true; $('trimRun').disabled = true; $('trimHide').hidden = true;
+  if (!keepInfo) $('trimInfo').textContent = S.result ? 'Set what to remove and what to reinforce, then preview.' : 'Run an analysis first. Low-stress material is removed and high-stress areas are thickened; support and load surfaces stay where they are.';
+}
+
+function updateTrimLabel(){
+  for (const [id, out] of [['trimPct','trimPctOut'], ['addPct','addPctOut']]){
+    const p = +$(id).value;
+    $(out).textContent = S.result ? `${p}% · ${(p/100*S.result.p99/1e6).toFixed(1)} MPa` : `${p}%`;
+  }
+}
+
+function stlBinary(pos, name){
+  const nt = pos.length/9, buf = new ArrayBuffer(84 + nt*50), dv = new DataView(buf);
+  const head = ('Part Stress Lab redesign: ' + name).slice(0,80);
+  for (let i=0; i<head.length; i++) dv.setUint8(i, head.charCodeAt(i) & 0x7f);
+  dv.setUint32(80, nt, true);
+  for (let t=0; t<nt; t++){
+    const b=t*9, o=84+t*50;
+    const ux=pos[b+3]-pos[b], uy=pos[b+4]-pos[b+1], uz=pos[b+5]-pos[b+2], vx=pos[b+6]-pos[b], vy=pos[b+7]-pos[b+1], vz=pos[b+8]-pos[b+2];
+    let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx; const l=Math.hypot(nx,ny,nz)||1;
+    dv.setFloat32(o, nx/l, true); dv.setFloat32(o+4, ny/l, true); dv.setFloat32(o+8, nz/l, true);
+    for (let k=0; k<9; k++) dv.setFloat32(o+12+k*4, pos[b+k], true);
+  }
+  return buf;
+}
+
+// single-file zip (stored, no compression): the artifact viewer saves .zip but not .stl
+function zipOne(name, data){
+  let crc = 0xFFFFFFFF;
+  for (let i=0; i<data.length; i++){ crc ^= data[i]; for (let k=0; k<8; k++) crc = (crc>>>1) ^ (0xEDB88320 & -(crc & 1)); }
+  crc = (crc ^ 0xFFFFFFFF) >>> 0;
+  const nm = new TextEncoder().encode(name), n = data.length, date = ((2026-1980)<<9)|(1<<5)|1;
+  const lh = new DataView(new ArrayBuffer(30)), ch = new DataView(new ArrayBuffer(46)), eo = new DataView(new ArrayBuffer(22));
+  lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(12,date,true); lh.setUint32(14,crc,true); lh.setUint32(18,n,true); lh.setUint32(22,n,true); lh.setUint16(26,nm.length,true);
+  ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(14,date,true); ch.setUint32(16,crc,true); ch.setUint32(20,n,true); ch.setUint32(24,n,true); ch.setUint16(28,nm.length,true);
+  eo.setUint32(0,0x06054b50,true); eo.setUint16(8,1,true); eo.setUint16(10,1,true); eo.setUint32(12,46+nm.length,true); eo.setUint32(16,30+nm.length+n,true);
+  return new Blob([lh, nm, data, ch, nm, eo]);
+}
+
+async function saveTrim(){
+  if (!T) return;
+  const base = (S.name.split(' ')[0] || 'part').replace(/[^\w.-]+/g,'_') + '_redesign';
+  const stl = stlBinary(T.pos, S.name);
+  if (window.AndroidBridge){   // Stress Lab Android app: hand the file to the system save dialog
+    const u8 = new Uint8Array(stl); let s = '';
+    for (let i=0; i<u8.length; i+=0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i+0x8000));
+    window.AndroidBridge.saveFile(base + '.stl', btoa(s));
+    return;
+  }
+  const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(()=>null) : null;
+  if (dl){
+    try { await dl.save({filename: base + '.zip', data: zipOne(base + '.stl', new Uint8Array(stl))}); setMsg(`Saved ${base}.zip with ${base}.stl inside.`); }
+    catch (e){ if (e && e.code !== 'declined') setMsg('Saving is not available here: ' + (e.message || e.code), true); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([stl], {type:'model/stl'})); a.download = base + '.stl';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  setMsg(`Saved ${base}.stl`);
+}
+
+function analyseTrim(){
+  if (!T) return;
+  const pos = T.pos, name = (S.name.split(' ')[0] || 'part') + ' (redesign)';
+  $('units').value = '1';
+  loadPart(pos, name, true);
+  S.userRun = true;
+  run();
+}
+
+/* ---------- phone tabs ---------- */
+const isPhone = () => matchMedia('(max-width:820px)').matches;
+function setTab(t){
+  document.body.dataset.tab = t;
+  document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+}
+document.querySelectorAll('.tabbar button').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+setTab('view');
+
+/* ---------- wiring ---------- */
+$('stlFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const isStep = /\.(step|stp)$/i.test(file.name);
+  try {
+    let pos, note = '';
+    if (isStep){
+      setMsg('Reading STEP file (the first one takes a few seconds to load the reader)…');
+      const r = await parseSTEP(await file.arrayBuffer());
+      pos = r.pos;
+      $('units').value = '1';   // the reader converts to millimetres
+      if (r.bodies > 1) note = ` ${r.bodies} bodies were merged into one part; touching bodies are treated as bonded.`;
+    } else {
+      pos = parseSTL(await file.arrayBuffer());
+    }
+    loadPart(pos, file.name.replace(/\.(stl|step|stp)$/i,''));
+    setMsg('Part loaded. Bottom face is fixed by default; paint the load area, then run.' + note);
+    setMode('load');
+    if (isPhone()) setTab('setup');
+  } catch(err){ setMsg(err.message, true); }
+  e.target.value = '';
+});
+$('sampleBtn').addEventListener('click', loadSample);
+$('units').addEventListener('change', () => { if (S.rawPos) applyUnits(); });
+matSel.addEventListener('change', () => { applyMaterial(); markStale(); if (!S.result) showResult(); });
+['mE','mNu','mRho','mSy'].forEach(id => $(id).addEventListener('input', () => { matSel.value='custom'; markStale(); }));
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$('brush').addEventListener('input', () => { $('brushOut').textContent = $('brush').value + ' mm'; brush.scale.setScalar(+$('brush').value); });
+$('faceFix').addEventListener('change', e => {
+  if (!e.target.value) return;
+  const [axis, side] = e.target.value.split(',').map(Number);
+  S.fixed.push({type:'face', axis, side}); e.target.value = '';
+  markStale(); refreshMarkers();
+});
+$('clearFixed').addEventListener('click', () => { S.fixed = []; markStale(); refreshMarkers(); });
+$('clearLoad').addEventListener('click', () => { S.loads = []; markStale(); refreshMarkers(); });
+document.querySelectorAll('.dirs button').forEach(b => b.addEventListener('click', () => {
+  const [x,y,z] = b.dataset.dir.split(','); $('dx').value=x; $('dy').value=y; $('dz').value=z; markStale(); refreshMarkers();
+}));
+['dx','dy','dz'].forEach(id => $(id).addEventListener('input', () => { markStale(); refreshMarkers(); }));
+['forceVal','forceUnit'].forEach(id => $(id).addEventListener('input', () => { updateForceText(); markStale(); }));
+$('gravity').addEventListener('change', markStale);
+$('detail').addEventListener('input', () => { $('detailOut').textContent = $('detail').value; });
+$('detail').addEventListener('change', revoxel);
+$('runBtn').addEventListener('click', () => { S.userRun = true; run(); });
+$('scaleMode').addEventListener('change', showResult);
+$('deform').addEventListener('input', applyDeform);
+$('showGrid').addEventListener('change', () => { rebuildGridView(); if (T && gridMesh) gridMesh.visible = false; });
+$('trimPct').addEventListener('input', updateTrimLabel);
+$('addPct').addEventListener('input', updateTrimLabel);
+$('trimBtn').addEventListener('click', () => { $('trimInfo').textContent = 'Building redesigned part…'; setTimeout(trimPart, 20); });
+$('trimHide').addEventListener('click', () => clearTrim());
+$('trimSave').addEventListener('click', saveTrim);
+$('trimRun').addEventListener('click', analyseTrim);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { refreshMarkers(); setMode(S.mode); });
+new MutationObserver(() => { refreshMarkers(); setMode(S.mode); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+function loadSample(){
+  $('units').value = '1';
+  matSel.value = '0'; applyMaterial();
+  $('forceVal').value = 250; $('forceUnit').value = 'N'; updateForceText();
+  $('dx').value = 0; $('dy').value = 0; $('dz').value = -1; $('gravity').checked = true;
+  S.fixed = [{type:'face', axis:0, side:-1}];
+  S.loads = [{type:'sphere', p:[66,15,60], r:7}];
+  loadPart(sampleBracket(), 'Sample L-bracket (wall-mounted, 250 N on shelf tip)', true);
+  setMode('orbit');
+  run();
+}
+
+matSel.value = '0'; applyMaterial(); updateForceText(); resize(); loadSample();
+</script>
