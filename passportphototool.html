@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passport Photo Tool</title>
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --ink:#1c2230; --muted:#5d6678; --line:#dde1e8;
+  --accent:#1f5fd1; --accent-ink:#ffffff; --ok:#16803c; --warn:#b26a00; --bad:#c62828;
+  --ok-bg:#e8f5ec; --warn-bg:#fff4e0; --bad-bg:#fdeaea; --canvas:#e6e8ec;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171c; --panel:#1d2128; --ink:#e7eaf0; --muted:#9aa3b2; --line:#2e343e;
+    --accent:#6b9cff; --accent-ink:#0b1220; --ok:#4cc27a; --warn:#f0a63a; --bad:#ff6b6b;
+    --ok-bg:#17301f; --warn-bg:#33260f; --bad-bg:#3a1a1a; --canvas:#0f1115;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171c; --panel:#1d2128; --ink:#e7eaf0; --muted:#9aa3b2; --line:#2e343e;
+  --accent:#6b9cff; --accent-ink:#0b1220; --ok:#4cc27a; --warn:#f0a63a; --bad:#ff6b6b;
+  --ok-bg:#17301f; --warn-bg:#33260f; --bad-bg:#3a1a1a; --canvas:#0f1115;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:16px 20px 8px}
+h1{font-size:20px;margin:0 0 2px}
+header p{margin:0;color:var(--muted)}
+main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr) minmax(280px,.9fr);gap:16px;padding:12px 20px 24px}
+@media (max-width:1100px){main{grid-template-columns:1fr 1fr}.checks{grid-column:1 / -1}}
+@media (max-width:720px){main{grid-template-columns:1fr;padding:12px 16px}header{padding:16px 16px 8px}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.panel h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+button,.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 10px;border-radius:7px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.active{outline:2px solid var(--accent);outline-offset:1px}
+button:disabled{opacity:.45;cursor:not-allowed}
+#srcWrap{position:relative;height:min(68vh,640px);background:var(--canvas);border-radius:8px;overflow:hidden;touch-action:none}
+#srcCanvas{width:100%;height:100%;display:block}
+#drop{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);border:2px dashed var(--line);border-radius:8px;cursor:pointer}
+#drop.hidden{display:none}
+#drop strong{color:var(--ink);font-size:15px}
+.hint{margin:8px 0 0;color:var(--muted);font-size:13px;min-height:2.9em}
+.hint b{color:var(--ink)}
+#outWrap{position:relative;width:100%;max-width:330px;margin:0 auto;aspect-ratio:500/653;background:var(--canvas);border:1px solid var(--line)}
+#outWrap canvas{position:absolute;inset:0;width:100%;height:100%}
+.row{display:grid;grid-template-columns:118px 1fr 58px;align-items:center;gap:8px;margin:7px 0}
+.row label{color:var(--muted);font-size:13px}
+.row output{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.sub{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
+.toggle{display:flex;align-items:center;gap:6px;margin:6px 0;font-size:13px}
+.checks ul{list-style:none;margin:0;padding:0}
+.checks li{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:7px 8px;border-radius:7px;margin-bottom:4px}
+.checks li .ico{font-weight:800;text-align:center}
+.checks li.pass{background:var(--ok-bg)} .checks li.pass .ico{color:var(--ok)}
+.checks li.warn{background:var(--warn-bg)} .checks li.warn .ico{color:var(--warn)}
+.checks li.fail{background:var(--bad-bg)} .checks li.fail .ico{color:var(--bad)}
+.checks li.na{background:transparent;color:var(--muted)}
+.checks li small{display:block;color:var(--muted)}
+.manual label{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:13px}
+.manual input{margin-top:3px}
+.dl{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+.summary{padding:8px 10px;border-radius:7px;margin-bottom:10px;font-weight:600}
+body.locked header,body.locked main{display:none}
+#gate{position:fixed;inset:0;display:none;place-items:center;background:var(--bg);z-index:10;padding:16px}
+body.locked #gate{display:grid}
+#gate form{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;width:100%;max-width:320px}
+#gate h2{font-size:16px;margin:0 0 12px}
+#gate input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);margin-bottom:12px}
+#gate button{width:100%}
+.summary.fail{background:var(--bad-bg);color:var(--bad)} .summary.ok{background:var(--ok-bg);color:var(--ok)} .summary.warn{background:var(--warn-bg);color:var(--warn)}
+</style>
+</head>
+<body class="locked">
+<div id="gate">
+  <form id="gateForm" autocomplete="off">
+    <h2>Enter password</h2>
+    <input type="password" id="gatePw" aria-label="Password" autofocus>
+    <button class="primary" type="submit">Unlock</button>
+  </form>
+</div>
+<script>
+// Password gate. Stores only the SHA-256 hash of the password. A wrong entry redirects to Google.
+// To change the password, replace PW_HASH with the output of:  printf '%s' 'newpassword' | sha256sum
+(() => {
+  const PW_HASH = "d84eebada93efee12b029e5b61e4df3270f0356886ceaa44a78eb52166a8f312";
+  const KEY = "pp-unlocked";
+  const unlock = () => document.body.classList.remove("locked");
+  // Plain SHA-256, because crypto.subtle is missing outside secure contexts (http://, some file:// viewers)
+  const sha256 = bytes => {
+    const K = [], H = [];
+    for (let n = 2, c = 0; c < 64; n++){
+      if ([...Array(n-2)].some((_,i) => n % (i+2) === 0)) continue;
+      if (c < 8) H[c] = (Math.pow(n,1/2) % 1) * 2**32 | 0;
+      K[c++] = (Math.pow(n,1/3) % 1) * 2**32 | 0;
+    }
+    const l = bytes.length, m = new Uint8Array(((l + 9 + 63) >> 6) << 6);
+    m.set(bytes); m[l] = 0x80;
+    const dv = new DataView(m.buffer); dv.setUint32(m.length-4, l*8); dv.setUint32(m.length-8, Math.floor(l/2**29));
+    const rot = (x,n) => (x >>> n) | (x << (32-n)), w = new Array(64);
+    for (let o = 0; o < m.length; o += 64){
+      for (let i = 0; i < 64; i++){
+        if (i < 16) w[i] = dv.getUint32(o + i*4);
+        else {
+          const a = w[i-15], b = w[i-2];
+          w[i] = (w[i-16] + (rot(a,7)^rot(a,18)^(a>>>3)) + w[i-7] + (rot(b,17)^rot(b,19)^(b>>>10))) | 0;
+        }
+      }
+      let [a,b,c,d,e,f,g,h] = H;
+      for (let i = 0; i < 64; i++){
+        const t1 = (h + (rot(e,6)^rot(e,11)^rot(e,25)) + ((e&f)^(~e&g)) + K[i] + w[i]) | 0;
+        const t2 = ((rot(a,2)^rot(a,13)^rot(a,22)) + ((a&b)^(a&c)^(b&c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      [a,b,c,d,e,f,g,h].forEach((v,i) => H[i] = (H[i] + v) | 0);
+    }
+    return H.map(v => (v >>> 0).toString(16).padStart(8,"0")).join("");
+  };
+  try { if (sessionStorage.getItem(KEY) === PW_HASH) { unlock(); return; } } catch {}
+  document.getElementById("gateForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const pw = new TextEncoder().encode(document.getElementById("gatePw").value);
+    const hash = sha256(pw);
+    if (hash !== PW_HASH) { location.replace("https://www.google.com"); return; }
+    try { sessionStorage.setItem(KEY, PW_HASH); } catch {}
+    unlock();
+  });
+})();
+</script>
+<header>
+  <h1>Passport Photo Tool</h1>
+  <p>Crops a portrait to the Finnish Police passport photo rules (2020): exactly 500 × 653 px JPEG, max 250 KB. Everything runs in your browser and the photo never leaves your device.</p>
+</header>
+
+<main>
+  <!-- 1. Source + markers -->
+  <section class="panel">
+    <h2><span class="step">1</span> Load photo &amp; mark crown and chin</h2>
+    <div class="toolbar">
+      <button id="btnOpen" class="primary">Open photo…</button>
+      <button id="btnCrown" disabled>Place crown</button>
+      <button id="btnChin" disabled>Place chin</button>
+      <button id="btnFit" disabled>Fit view</button>
+      <button id="btnZoomIn" disabled>＋</button>
+      <button id="btnZoomOut" disabled>－</button>
+      <input id="file" type="file" accept="image/*" hidden>
+    </div>
+    <div id="srcWrap">
+      <canvas id="srcCanvas"></canvas>
+      <div id="drop"><div><strong>Drop a photo here, paste it, or click to open</strong><br>Use a photo taken by a camera at 1.5 m or more. A phone held close distorts the face (rules, picture 9).</div></div>
+    </div>
+    <p class="hint" id="hint">The <b>crown</b> is the top of the skull, not the top of the hair. The <b>chin</b> is the bottom of the chin, not the beard. Estimate them if hair or a beard hides them. Place both markers on the centre line of the face.</p>
+  </section>
+
+  <!-- 2. Output + adjustments -->
+  <section class="panel">
+    <h2><span class="step">2</span> Adjust &amp; export</h2>
+    <div id="outWrap">
+      <canvas id="outCanvas" width="500" height="653"></canvas>
+      <canvas id="guideCanvas" width="500" height="653"></canvas>
+    </div>
+    <label class="toggle"><input type="checkbox" id="showGuides" checked> Show tolerance guides (not saved)</label>
+
+    <div class="sub">Geometry</div>
+    <div class="row"><label for="head">Crown → chin</label><input type="range" id="head" min="445" max="500" step="1" value="472"><output id="headV"></output></div>
+    <div class="row"><label for="top">Above crown</label><input type="range" id="top" min="56" max="84" step="1" value="70"><output id="topV"></output></div>
+    <div class="row"><label for="rot">Fine rotation</label><input type="range" id="rot" min="-5" max="5" step="0.1" value="0"><output id="rotV"></output></div>
+    <div class="toolbar"><button id="btnCenter">Reset to optimal fit</button></div>
+
+    <div class="sub">Global corrections (whole image only)</div>
+    <div class="row"><label for="bright">Brightness</label><input type="range" id="bright" min="-25" max="25" step="1" value="0"><output id="brightV"></output></div>
+    <div class="row"><label for="contrast">Contrast</label><input type="range" id="contrast" min="-20" max="20" step="1" value="0"><output id="contrastV"></output></div>
+    <div class="row"><label for="warmth">Warmth</label><input type="range" id="warmth" min="-20" max="20" step="1" value="0"><output id="warmthV"></output></div>
+    <div class="row"><label for="tint">Tint</label><input type="range" id="tint" min="-20" max="20" step="1" value="0"><output id="tintV"></output></div>
+    <div class="toolbar">
+      <button id="btnAwb">Neutralise colour cast (from background)</button>
+      <button id="btnResetAdj">Reset corrections</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="grey"> Black-and-white (allowed by the rules)</label>
+    <p class="note">The rules forbid any edit that changes even the smallest detail of your appearance, including digital make-up. This tool only crops, scales, rotates and applies uniform tone/colour changes to the whole image. It has no retouching or background replacement on purpose.</p>
+
+    <div class="dl">
+      <button id="btnDownload" class="primary" disabled>Download JPEG (500 × 653)</button>
+      <button id="btnPrint" disabled>Print sheet 10 × 15 cm</button>
+    </div>
+    <p class="note" id="fileInfo"></p>
+  </section>
+
+  <!-- 3. Compliance -->
+  <section class="panel checks">
+    <h2><span class="step">3</span> Compliance</h2>
+    <div id="summary" class="summary fail">Load a photo and place both markers.</div>
+    <ul id="checkList"></ul>
+
+    <div class="sub">Confirm yourself (cannot be measured)</div>
+    <div class="manual" id="manual"></div>
+    <p class="note">Automatic background and exposure checks are estimates from image samples. Hard limits (size, format, file size, head size and position) are measured exactly. Download stays disabled until all of them pass.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+const OUT_W = 500, OUT_H = 653, MAX_BYTES = 250000;
+const R = { head:[445,500], top:[56,84], below:[96,124], centre:21 };
+const $ = id => document.getElementById(id);
+
+const S = {
+  img:null, levels:[], W:0, H:0, crown:null, chin:null, placing:null, sel:null,
+  head:472, top:70, rot:0, bright:0, contrast:0, warmth:0, tint:0, grey:false,
+  view:{z:1,x:0,y:0}, blob:null, quality:0, hardOk:false
+};
+
+// ---------- manual checklist (from the police instructions) ----------
+const MANUAL = [
+  "Photo taken within the last 6 months.",
+  "Sharp over the whole face (ears to nose tip), not blurry, grainy or over-compressed.",
+  "No wide-angle distortion: not a close-up phone or tablet selfie.",
+  "Head straight (no tilt sideways, forward or back). Face and eyes look straight at the camera. Shoulders square.",
+  "Neutral expression, mouth closed, eyes open with no squinting.",
+  "Even lighting: no shadows on the face or background, no blown-out white areas, no red-eye.",
+  "Natural colours, with no blue or red cast.",
+  "Face fully visible. Hair and glasses frames do not cover the eyes, and the glasses show no reflections.",
+  "Tinted glasses, eyepatch, wig or head covering only for medical or religious reasons, with no shadow on the face.",
+  "Plain, flat, light and neutral background with no shadows. Face, hair and clothes stand out from it (also in greyscale).",
+  "No other people or objects in the picture, including the hands of anyone supporting a child.",
+  "No retouching, digital make-up or background replacement was done before loading."
+];
+$("manual").innerHTML = MANUAL.map((t,i)=>`<label><input type="checkbox" data-m="${i}"> <span>${t}</span></label>`).join("");
+
+// ---------- loading ----------
+const fileIn = $("file");
+$("btnOpen").onclick = () => fileIn.click();
+$("drop").onclick = () => fileIn.click();
+fileIn.onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+const wrap = $("srcWrap");
+wrap.addEventListener("dragover", e => { e.preventDefault(); });
+wrap.addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer.files[0]; f && loadFile(f); });
+window.addEventListener("paste", e => {
+  const item = [...(e.clipboardData?.items||[])].find(i => i.type.startsWith("image/"));
+  if (item) loadFile(item.getAsFile());
+});
+
+function loadFile(f){
+  const url = URL.createObjectURL(f);
+  const img = new Image();
+  img.onload = () => {
+    S.img = img; S.W = img.naturalWidth; S.H = img.naturalHeight;
+    S.levels = buildLevels(img);
+    S.crown = S.chin = null; S.sel = null; S.placing = "crown";
+    $("drop").classList.add("hidden");
+    ["btnCrown","btnChin","btnFit","btnZoomIn","btnZoomOut"].forEach(id => $(id).disabled = false);
+    fitView(); update();
+  };
+  img.onerror = () => alert("Could not read that image file.");
+  img.src = url;
+}
+
+// Halved copies of the source for good-quality large downscales
+function buildLevels(img){
+  const lv = [img];
+  let w = img.naturalWidth, h = img.naturalHeight, prev = img;
+  while (w > 600 && h > 600 && lv.length < 6){
+    w = Math.round(w/2); h = Math.round(h/2);
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const x = c.getContext("2d"); x.imageSmoothingQuality = "high";
+    x.drawImage(prev, 0, 0, w, h);
+    lv.push(c); prev = c;
+  }
+  return lv;
+}
+
+// ---------- geometry ----------
+// Maps source px <-> output px. Crown lands at (250, top); the crown→chin axis is vertical.
+function geom(){
+  const {crown, chin} = S;
+  const ax = chin.x - crown.x, ay = chin.y - crown.y, L = Math.hypot(ax, ay);
+  const t = S.rot * Math.PI/180, ux = ax/L, uy = ay/L;
+  const dx = ux*Math.cos(t) - uy*Math.sin(t), dy = ux*Math.sin(t) + uy*Math.cos(t);
+  return { s:S.head/L, L, dx, dy, rx:dy, ry:-dx, cx:crown.x, cy:crown.y, ox:OUT_W/2, oy:S.top };
+}
+const toOut = (g,p) => { const x=p.x-g.cx, y=p.y-g.cy; return {x:g.s*(g.rx*x+g.ry*y)+g.ox, y:g.s*(g.dx*x+g.dy*y)+g.oy}; };
+const toSrc = (g,u,v) => { const a=(u-g.ox)/g.s, b=(v-g.oy)/g.s; return {x:g.cx+a*g.rx+b*g.dx, y:g.cy+a*g.ry+b*g.dy}; };
+
+function cropInside(g){
+  const eps = 0.5;
+  return [[0,0],[OUT_W,0],[0,OUT_H],[OUT_W,OUT_H]].every(([u,v]) => {
+    const p = toSrc(g,u,v); return p.x >= -eps && p.y >= -eps && p.x <= S.W+eps && p.y <= S.H+eps;
+  });
+}
+
+// ---------- rendering ----------
+function renderTo(canvas, k){
+  const g = geom();
+  canvas.width = Math.round(OUT_W*k); canvas.height = Math.round(OUT_H*k);
+  const ctx = canvas.getContext("2d", {willReadFrequently:true});
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  const eff = k*g.s;
+  let n = eff < 0.5 ? Math.floor(Math.log2(1/eff)) : 0;
+  n = Math.min(n, S.levels.length-1);
+  const src = S.levels[n], f = S.W / (src.naturalWidth || src.width);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.setTransform(k*g.s*g.rx, k*g.s*g.dx, k*g.s*g.ry, k*g.s*g.dy,
+    k*(g.ox - g.s*(g.rx*g.cx + g.ry*g.cy)), k*(g.oy - g.s*(g.dx*g.cx + g.dy*g.cy)));
+  ctx.scale(f, f);
+  ctx.drawImage(src, 0, 0);
+  ctx.setTransform(1,0,0,1,0,0);
+  applyAdjust(ctx, canvas.width, canvas.height);
+  return g;
+}
+
+function applyAdjust(ctx, w, h){
+  const {bright:b, contrast:c, warmth:wm, tint:tn, grey} = S;
+  if (!b && !c && !wm && !tn && !grey) return;
+  const id = ctx.getImageData(0,0,w,h), d = id.data, cf = 1 + c/100;
+  const lut = new Uint8ClampedArray(256);
+  for (let i=0;i<256;i++) lut[i] = (i-128)*cf + 128 + b;
+  for (let i=0;i<d.length;i+=4){
+    let r = lut[d[i]] + wm, gg = lut[d[i+1]] + tn, bb = lut[d[i+2]] - wm;
+    if (grey){ r = gg = bb = 0.299*r + 0.587*gg + 0.114*bb; }
+    d[i]=r; d[i+1]=gg; d[i+2]=bb;
+  }
+  ctx.putImageData(id,0,0);
+}
+
+function drawGuides(g){
+  const c = $("guideCanvas"), x = c.getContext("2d");
+  x.clearRect(0,0,OUT_W,OUT_H);
+  if (!$("showGuides").checked || !g) return;
+  x.fillStyle = "rgba(22,160,70,.22)";
+  x.fillRect(0, R.top[0], OUT_W, R.top[1]-R.top[0]);                         // crown zone
+  x.fillRect(0, OUT_H-R.below[1], OUT_W, R.below[1]-R.below[0]);             // chin zone
+  x.fillRect(OUT_W/2-R.centre, 0, R.centre*2, OUT_H);                        // centre tolerance
+  x.strokeStyle = "rgba(22,160,70,.9)"; x.lineWidth = 1; x.setLineDash([4,4]);
+  x.beginPath(); x.moveTo(OUT_W/2+.5,0); x.lineTo(OUT_W/2+.5,OUT_H); x.stroke();
+  x.setLineDash([]);
+  const cr = toOut(g,S.crown), ch = toOut(g,S.chin);
+  x.strokeStyle = "#ff2d55"; x.lineWidth = 2;
+  [cr,ch].forEach(p => { x.beginPath(); x.moveTo(p.x-40,p.y); x.lineTo(p.x+40,p.y); x.stroke(); });
+  x.beginPath(); x.moveTo(cr.x,cr.y); x.lineTo(ch.x,ch.y); x.stroke();
+}
+
+// ---------- analysis ----------
+function stats(d, x0,y0,x1,y1){
+  let n=0,r=0,g=0,b=0,l=0,l2=0,hi=0,lo=0;
+  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++){
+    const i=(y*OUT_W+x)*4, L=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+    r+=d[i]; g+=d[i+1]; b+=d[i+2]; l+=L; l2+=L*L; n++;
+    if (L>=250) hi++; if (L<=8) lo++;
+  }
+  const m=l/n; return {r:r/n,g:g/n,b:b/n,l:m,sd:Math.sqrt(Math.max(0,l2/n-m*m)),hi:hi/n,lo:lo/n};
+}
+
+function analyse(g){
+  const checks = [];
+  const add = (st,label,detail,hard) => checks.push({st,label,detail,hard});
+  if (!g){ return checks; }
+  const inside = cropInside(g);
+  const cr = toOut(g,S.crown), ch = toOut(g,S.chin);
+  const head = ch.y - cr.y, top = cr.y, below = OUT_H - ch.y;
+  const centreOff = (cr.x+ch.x)/2 - OUT_W/2;
+  const tilt = Math.atan2(ch.x-cr.x, ch.y-cr.y)*180/Math.PI;
+  const inR = (v,[a,b]) => v >= a-1e-6 && v <= b+1e-6;
+
+  add("pass","Image is exactly 500 × 653 px","Fixed output size.",true);
+  add("pass","JPEG format (.jpg), not JPEG 2000","Encoded as baseline JPEG.",true);
+  add(inside?"pass":"fail","Crop lies fully inside the photo",
+      inside?"No padding was added.":"The crop goes past the edge of your photo. Use a photo with more space around the head, or reduce the space above the crown.",true);
+  add(inR(head,R.head)?"pass":"fail",`Crown to chin: ${head.toFixed(1)} px`,"Required: 445–500 px (32–36 mm on paper).",true);
+  add(inR(top,R.top)?"pass":"fail",`Above crown: ${top.toFixed(1)} px`,"Required: 56–84 px (4–6 mm).",true);
+  add(inR(below,R.below)?"pass":"fail",`Below chin: ${below.toFixed(1)} px`,"Required: 96–124 px (7–9 mm).",true);
+  add(Math.abs(centreOff)<=R.centre?"pass":"fail",`Face centre offset: ${centreOff.toFixed(1)} px`,"Required: within ±21 px (1.5 mm) of the centre line.",true);
+  add(Math.abs(tilt)<=2?"pass":"warn",`Head axis tilt: ${tilt.toFixed(1)}°`,"The head must be straight. Keep the fine rotation near 0°.",false);
+
+  const up = g.s;
+  add(up<=1?"pass":(up<=1.3?"warn":"fail"),
+      up<=1?`Source resolution OK (scaled ×${up.toFixed(2)})`:`Photo is upscaled ×${up.toFixed(2)}`,
+      up<=1?"No enlargement was needed.":`Only ${Math.round(g.L)} px between crown and chin in the original photo. Enlarging it makes the result soft or grainy. Use a higher-resolution photo.`, up>1.3);
+
+  if (S.blob){
+    const kb = S.blob.size/1000;
+    add(S.blob.size<=MAX_BYTES?"pass":"fail",`File size: ${kb.toFixed(1)} KB`,"Maximum 250 KB.",true);
+    add(S.quality>=0.85?"pass":"warn",`JPEG quality: ${Math.round(S.quality*100)}`,"High quality avoids compression artefacts (rules, picture 4).",false);
+  } else add("na","File size: computing…","",true);
+
+  // Heuristics
+  const d = $("outCanvas").getContext("2d").getImageData(0,0,OUT_W,OUT_H).data;
+  const bl = stats(d,0,4,70,Math.max(10,Math.round(top)-6)), br = stats(d,OUT_W-70,4,OUT_W,Math.max(10,Math.round(top)-6));
+  const bg = {l:(bl.l+br.l)/2, r:(bl.r+br.r)/2, g:(bl.g+br.g)/2, b:(bl.b+br.b)/2, sd:Math.max(bl.sd,br.sd)};
+  const fx = Math.round(OUT_W/2+centreOff);
+  const face = stats(d, Math.max(0,fx-70), Math.round(top+head*0.25), Math.min(OUT_W,fx+70), Math.round(top+head*0.8));
+  S.bgSample = bg;
+
+  add(bg.l>=150 && bg.l<=245?"pass":"warn",`Background brightness: ${bg.l.toFixed(0)}/255`,
+      bg.l<150?"Looks too dark. A light background (ideally light grey) is required.":bg.l>245?"Looks very bright. An over-lit background makes the outline glow and lowers face contrast.":"Light background (light grey is best).",false);
+  const evenDiff = Math.abs(bl.l-br.l);
+  add(evenDiff<=15 && bg.sd<=12?"pass":"warn",`Background evenness: Δ${evenDiff.toFixed(0)}, σ${bg.sd.toFixed(1)}`,
+      "Must be plain and flat with no shadows. Sampled from both top corners.",false);
+  const cast = Math.max(Math.abs(bg.r-bg.g),Math.abs(bg.b-bg.g),Math.abs(bg.r-bg.b));
+  add(cast<=12?"pass":"warn",`Background neutrality: ${cast.toFixed(0)}`,
+      cast<=12?"Neutral.":"Coloured tint found. The background must be neutral, and a cast here may mean the whole photo's colour is off.",false);
+  add(face.l>=80 && face.l<=215 && face.hi<=0.02?"pass":"warn",`Face exposure: ${face.l.toFixed(0)}/255, ${ (face.hi*100).toFixed(1)}% blown`,
+      face.hi>0.02?"Some areas are completely white (overexposed).":face.l<80?"Face looks underexposed.":face.l>215?"Face looks overexposed.":"Not over- or underexposed.",false);
+  const sep = Math.abs(bg.l-face.l);
+  add(sep>=20?"pass":"warn",`Face/background separation: ${sep.toFixed(0)}`,
+      "The face must stand out from the background in greyscale, because the laser-engraved picture is greyscale.",false);
+  return checks;
+}
+
+// ---------- encoding ----------
+const toBlob = (c,q) => new Promise(res => c.toBlob(res,"image/jpeg",q));
+async function encodeBest(c){
+  let b = await toBlob(c,0.95);
+  if (b.size <= MAX_BYTES) return {blob:b,q:0.95};
+  let lo=0.4, hi=0.95, best=null, bq=0;
+  for (let i=0;i<7;i++){
+    const q=(lo+hi)/2, t=await toBlob(c,q);
+    if (t.size<=MAX_BYTES){best=t;bq=q;lo=q;} else hi=q;
+  }
+  return best ? {blob:best,q:bq} : {blob:b,q:0.95};
+}
+
+// ---------- main update ----------
+let encTimer=null, encSeq=0;
+function update(){
+  ["head","top","rot","bright","contrast","warmth","tint"].forEach(k => {
+    $(k).value = S[k];
+    $(k+"V").textContent = k==="rot" ? S[k].toFixed(1)+"°" : (k==="head"||k==="top") ? S[k]+" px" : (S[k]>0?"+":"")+S[k];
+  });
+  $("grey").checked = S.grey;
+  drawSource();
+  const ready = S.img && S.crown && S.chin && S.chin.y - S.crown.y > 10;
+  let g = null;
+  if (ready){ g = renderTo($("outCanvas"),1); }
+  else { const x=$("outCanvas").getContext("2d"); x.clearRect(0,0,OUT_W,OUT_H); }
+  drawGuides(g);
+  S.blob = null; showChecks(g);
+  clearTimeout(encTimer);
+  if (ready){
+    const seq = ++encSeq;
+    encTimer = setTimeout(async () => {
+      const r = await encodeBest($("outCanvas"));
+      if (seq!==encSeq) return;
+      S.blob = r.blob; S.quality = r.q;
+      showChecks(g);
+    }, 250);
+  }
+  updateHint();
+}
+
+function showChecks(g){
+  const list = analyse(g);
+  const ico = {pass:"✓",warn:"!",fail:"✕",na:"…"};
+  $("checkList").innerHTML = list.map(c => `<li class="${c.st}"><span class="ico">${ico[c.st]}</span><span>${c.label}${c.detail?`<small>${c.detail}</small>`:""}</span></li>`).join("");
+  const hardFail = !g || list.some(c => c.hard && (c.st==="fail"||c.st==="na"));
+  const warns = list.filter(c => c.st==="warn").length;
+  S.hardOk = !hardFail;
+  $("btnDownload").disabled = hardFail || !S.blob;
+  $("btnPrint").disabled = !g || list.some(c => c.hard && c.st==="fail" && !/File size/.test(c.label));
+  const sm = $("summary");
+  if (!g){ sm.className="summary fail"; sm.textContent="Load a photo and place both markers."; }
+  else if (hardFail){ sm.className="summary fail"; sm.textContent = S.blob ? "Fails a mandatory rule. Fix the items marked ✕." : "Checking…"; }
+  else if (warns){ sm.className="summary warn"; sm.textContent=`All mandatory rules pass. Review ${warns} warning${warns>1?"s":""}.`; }
+  else { sm.className="summary ok"; sm.textContent="All measurable rules pass."; }
+  $("fileInfo").textContent = S.blob ? `Output: 500 × 653 px · ${(S.blob.size/1000).toFixed(1)} KB · JPEG q${Math.round(S.quality*100)}` : "";
+}
+
+function updateHint(){
+  const h = $("hint");
+  $("btnCrown").classList.toggle("active", S.placing==="crown");
+  $("btnChin").classList.toggle("active", S.placing==="chin");
+  if (!S.img) return;
+  if (S.placing==="crown") h.innerHTML = "Click the <b>crown</b>: the top of the skull, ignoring hair. Estimate it if hair is thick. Scroll to zoom and drag to pan.";
+  else if (S.placing==="chin") h.innerHTML = "Click the <b>bottom of the chin</b>, ignoring any beard. Keep it on the face's centre line.";
+  else h.innerHTML = "Drag a marker to fine-tune it. You can also click a marker and use the arrow keys (Shift moves it further). Zoom in for accuracy, because 1 px here can matter.";
+}
+
+// ---------- source view ----------
+const sc = $("srcCanvas"), sx = sc.getContext("2d");
+function sizeCanvas(){
+  const r = wrap.getBoundingClientRect(), dpr = window.devicePixelRatio||1;
+  sc.width = Math.round(r.width*dpr); sc.height = Math.round(r.height*dpr);
+}
+function fitView(){
+  sizeCanvas();
+  const r = wrap.getBoundingClientRect(), z = Math.min(r.width/S.W, r.height/S.H)*0.95;
+  S.view = {z, x:(r.width-S.W*z)/2, y:(r.height-S.H*z)/2};
+  drawSource();
+}
+const s2v = p => ({x:p.x*S.view.z+S.view.x, y:p.y*S.view.z+S.view.y});
+const v2s = (x,y) => ({x:(x-S.view.x)/S.view.z, y:(y-S.view.y)/S.view.z});
+
+function drawSource(){
+  if (!S.img) return;
+  const dpr = window.devicePixelRatio||1, {z,x,y} = S.view;
+  sx.setTransform(1,0,0,1,0,0); sx.clearRect(0,0,sc.width,sc.height);
+  sx.imageSmoothingQuality = "high";
+  const n = Math.min(S.levels.length-1, Math.max(0, Math.floor(Math.log2(1/(z*dpr)))));
+  const lv = S.levels[n], f = S.W/(lv.naturalWidth||lv.width);
+  sx.setTransform(dpr*z*f,0,0,dpr*z*f,dpr*x,dpr*y); sx.drawImage(lv,0,0);
+  sx.setTransform(dpr,0,0,dpr,0,0);
+
+  if (S.crown && S.chin && S.chin.y - S.crown.y > 10){
+    const g = geom();
+    const pts = [[0,0],[OUT_W,0],[OUT_W,OUT_H],[0,OUT_H]].map(([u,v]) => s2v(toSrc(g,u,v)));
+    // dim outside crop
+    sx.save(); sx.fillStyle = "rgba(0,0,0,.45)";
+    sx.beginPath(); sx.rect(0,0,sc.width/dpr,sc.height/dpr);
+    sx.moveTo(pts[0].x,pts[0].y); pts.slice(1).reverse().forEach(p=>sx.lineTo(p.x,p.y)); sx.closePath();
+    sx.fill("evenodd"); sx.restore();
+    sx.strokeStyle = cropInside(g) ? "#3ddc84" : "#ff4d4d"; sx.lineWidth = 2;
+    sx.beginPath(); pts.forEach((p,i)=> i?sx.lineTo(p.x,p.y):sx.moveTo(p.x,p.y)); sx.closePath(); sx.stroke();
+    const a = s2v(S.crown), b = s2v(S.chin);
+    sx.strokeStyle = "rgba(255,45,85,.8)"; sx.lineWidth = 1; sx.setLineDash([5,4]);
+    sx.beginPath(); sx.moveTo(a.x,a.y); sx.lineTo(b.x,b.y); sx.stroke(); sx.setLineDash([]);
+  }
+  [["crown","Crown"],["chin","Chin"]].forEach(([k,label]) => {
+    if (!S[k]) return;
+    const p = s2v(S[k]), sel = S.sel===k;
+    sx.strokeStyle = "#000"; sx.lineWidth = 4;
+    sx.beginPath(); sx.moveTo(p.x-18,p.y); sx.lineTo(p.x+18,p.y); sx.moveTo(p.x,p.y-8); sx.lineTo(p.x,p.y+8); sx.stroke();
+    sx.strokeStyle = sel ? "#ffd60a" : "#ff2d55"; sx.lineWidth = 2;
+    sx.beginPath(); sx.moveTo(p.x-18,p.y); sx.lineTo(p.x+18,p.y); sx.moveTo(p.x,p.y-8); sx.lineTo(p.x,p.y+8); sx.stroke();
+    sx.font = "600 12px system-ui,sans-serif"; sx.lineWidth = 3; sx.strokeStyle = "#000"; sx.fillStyle = "#fff";
+    sx.strokeText(label, p.x+22, p.y+4); sx.fillText(label, p.x+22, p.y+4);
+  });
+}
+
+let drag = null;
+sc.addEventListener("pointerdown", e => {
+  if (!S.img) return;
+  sc.setPointerCapture(e.pointerId);
+  const r = sc.getBoundingClientRect(), mx = e.clientX-r.left, my = e.clientY-r.top;
+  const hit = ["crown","chin"].find(k => S[k] && Math.hypot(s2v(S[k]).x-mx, s2v(S[k]).y-my) < 16);
+  if (hit){ S.sel = hit; drag = {type:"marker",k:hit}; drawSource(); return; }
+  if (S.placing){
+    const p = v2s(mx,my);
+    S[S.placing] = p; S.sel = S.placing;
+    S.placing = S.placing==="crown" && !S.chin ? "chin" : null;
+    drag = {type:"marker",k:S.sel}; update(); return;
+  }
+  drag = {type:"pan", x:mx, y:my, vx:S.view.x, vy:S.view.y};
+});
+sc.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const r = sc.getBoundingClientRect(), mx = e.clientX-r.left, my = e.clientY-r.top;
+  if (drag.type==="marker"){ S[drag.k] = clampSrc(v2s(mx,my)); update(); }
+  else { S.view.x = drag.vx + mx-drag.x; S.view.y = drag.vy + my-drag.y; drawSource(); }
+});
+sc.addEventListener("pointerup", () => drag = null);
+sc.addEventListener("wheel", e => {
+  if (!S.img) return; e.preventDefault();
+  const r = sc.getBoundingClientRect();
+  zoomAt(e.clientX-r.left, e.clientY-r.top, Math.exp(-e.deltaY*0.0015));
+}, {passive:false});
+function zoomAt(mx,my,f){
+  const p = v2s(mx,my);
+  S.view.z = Math.min(40, Math.max(0.02, S.view.z*f));
+  S.view.x = mx - p.x*S.view.z; S.view.y = my - p.y*S.view.z; drawSource();
+}
+const clampSrc = p => ({x:Math.min(S.W,Math.max(0,p.x)), y:Math.min(S.H,Math.max(0,p.y))});
+window.addEventListener("keydown", e => {
+  if (!S.sel || !S[S.sel] || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  const step = (e.shiftKey?10:1)/S.view.z, m = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+  if (!m) return; e.preventDefault();
+  S[S.sel] = clampSrc({x:S[S.sel].x+m[0]*step, y:S[S.sel].y+m[1]*step}); update();
+});
+window.addEventListener("resize", () => { if (S.img){ sizeCanvas(); drawSource(); } });
+
+$("btnCrown").onclick = () => { S.placing = "crown"; updateHint(); };
+$("btnChin").onclick = () => { S.placing = "chin"; updateHint(); };
+$("btnFit").onclick = fitView;
+$("btnZoomIn").onclick = () => zoomAt(sc.clientWidth/2, sc.clientHeight/2, 1.4);
+$("btnZoomOut").onclick = () => zoomAt(sc.clientWidth/2, sc.clientHeight/2, 1/1.4);
+
+// ---------- controls ----------
+["head","top","rot","bright","contrast","warmth","tint"].forEach(k => $(k).addEventListener("input", e => { S[k] = +e.target.value; update(); }));
+$("grey").onchange = e => { S.grey = e.target.checked; update(); };
+$("showGuides").onchange = () => update();
+$("btnCenter").onclick = () => { S.head = 472; S.top = 70; S.rot = 0; update(); };   // 70 + 472 + 111 = 653: middle of every tolerance
+$("btnResetAdj").onclick = () => { S.bright = S.contrast = S.warmth = S.tint = 0; S.grey = false; update(); };
+$("btnAwb").onclick = () => {
+  if (!S.crown || !S.chin) return;
+  // measure the background without the current colour correction
+  const w0 = S.warmth, t0 = S.tint, g0 = S.grey; S.warmth = S.tint = 0; S.grey = false; update();
+  const bg = S.bgSample; S.grey = g0;
+  if (!bg){ S.warmth=w0; S.tint=t0; return; }
+  const cl = v => Math.max(-20, Math.min(20, Math.round(v)));
+  S.warmth = cl((bg.b - bg.r)/2); S.tint = cl((bg.r + bg.b)/2 - bg.g);
+  update();
+};
+
+// ---------- export ----------
+function save(blob, name){
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+$("btnDownload").onclick = () => { if (S.blob && S.hardOk) save(S.blob, "passport-photo-500x653.jpg"); };
+
+// 10 × 15 cm sheet at 300 dpi with four 36 × 47 mm prints rendered from the original pixels
+$("btnPrint").onclick = async () => {
+  const dpi = 300, mm = v => Math.round(v/25.4*dpi);
+  const sheet = document.createElement("canvas"); sheet.width = mm(100); sheet.height = mm(150);
+  const x = sheet.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0,0,sheet.width,sheet.height);
+  const pw = mm(36), ph = mm(47), photo = document.createElement("canvas");
+  renderTo(photo, pw/OUT_W);
+  const gx = mm(8), gy = mm(10), x0 = (sheet.width - 2*pw - gx)/2, y0 = mm(20);
+  x.strokeStyle = "#bbb"; x.lineWidth = 1;
+  for (let r=0;r<2;r++) for (let c=0;c<2;c++){
+    const px = Math.round(x0 + c*(pw+gx)), py = Math.round(y0 + r*(ph+gy));
+    x.drawImage(photo, px, py, pw, ph); x.strokeRect(px-.5, py-.5, pw+1, ph+1);
+  }
+  x.fillStyle = "#666"; x.font = `${mm(3)}px sans-serif`;
+  x.fillText("Print at 100% (10 × 15 cm, 300 dpi). Each photo is 36 × 47 mm.", mm(8), sheet.height - mm(10));
+  save(await toBlob(sheet, 0.95), "passport-photo-print-10x15cm.jpg");
+};
+
+update();
+})();
+</script>
+</body>
+</html>
