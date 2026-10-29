@@ -89,7 +89,7 @@ body.locked #gate{display:grid}
 // Password gate. Stores only the SHA-256 hash of the password. A wrong entry redirects to Google.
 // To change the password, replace PW_HASH with the output of:  printf '%s' 'newpassword' | sha256sum
 (() => {
-  const PW_HASH = "d84eebada93efee12b029e5b61e4df3270f0356886ceaa44a78eb52166a8f312";
+  const PW_HASH = "c7dd77f2d69fdee7f595c7c4a2b98561e4529b3058d5bbc498ffd0fbe9f34909";
   const KEY = "pp-unlocked";
   const unlock = () => document.body.classList.remove("locked");
   // Plain SHA-256, because crypto.subtle is missing outside secure contexts (http://, some file:// viewers)
