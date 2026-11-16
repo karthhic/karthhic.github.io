@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kanakku</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f766e">
+<style>
+:root{--bg:#f4f5f4;--card:#fff;--text:#18211f;--muted:#66736f;--line:#dfe4e2;--accent:#0f766e;--on-accent:#fff;--bad:#b42318;--track:#e6eae8}
+@media (prefers-color-scheme:dark){:root{--bg:#101514;--card:#1a211f;--text:#e9efed;--muted:#94a29e;--line:#2b3532;--accent:#2bb3a5;--on-accent:#06201d;--bad:#ff8a7a;--track:#2b3532}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 0 calc(64px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 16px}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:24px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+input,select,button{font:inherit;color:inherit}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+#amount{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+button{padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer}
+button.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+button.danger{color:var(--bad)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.actions{display:flex;gap:10px;margin-top:18px}.actions>*{flex:1}
+.hint{font-size:13px;color:var(--muted);margin:4px 0 0}
+.month{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.month b{font-size:18px}
+.month button{width:48px}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats{display:flex;gap:10px}.stats .card{flex:1;margin:0;min-width:0}
+.stats small{display:block;color:var(--muted);font-size:12px}
+.stats b{font-size:18px}
+.over{color:var(--bad)}
+.item{display:flex;justify-content:space-between;gap:12px;align-items:baseline;width:100%;text-align:left}
+.item small{display:block;color:var(--muted);font-size:13px}
+.item>span:first-child{min-width:0;overflow-wrap:anywhere}
+.bar{height:6px;background:var(--track);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.bar i.over{background:var(--bad)}
+.empty{color:var(--muted);text-align:center;padding:32px 0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;border-radius:0;background:none;padding:18px 4px;color:var(--muted);font-size:14px}
+nav button.on{color:var(--accent);font-weight:600}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);width:min(92vw,420px);padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+#toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.show{opacity:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <section id="v-add">
+    <h1 id="addTitle">Add expense</h1>
+    <form id="txForm">
+      <label for="amount">Amount</label>
+      <input id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" required>
+      <label for="sub">Subcategory</label>
+      <select id="sub" required></select>
+      <p class="hint" id="catHint"></p>
+      <label for="date">Date</label>
+      <input id="date" type="date" required>
+      <div class="row">
+        <div><label for="pay">Payment method</label><select id="pay"></select></div>
+        <div><label for="person">Person</label><select id="person"></select></div>
+      </div>
+      <label for="notes">Notes</label>
+      <input id="notes" type="text" autocomplete="off" placeholder="e.g. Lidl">
+      <div class="actions">
+        <button type="button" id="txDelete" class="danger" hidden>Delete</button>
+        <button type="button" id="txCancel" hidden>Cancel</button>
+        <button class="primary" id="txSave">Save expense</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="v-list" hidden>
+    <div class="month"><button data-m="-1" aria-label="Previous month">‹</button><b class="mLabel"></b><button data-m="1" aria-label="Next month">›</button></div>
+    <div id="list"></div>
+  </section>
+
+  <section id="v-budget" hidden>
+    <div class="month"><button data-m="-1" aria-label="Previous month">‹</button><b class="mLabel"></b><button data-m="1" aria-label="Next month">›</button></div>
+    <div class="stats" id="stats"></div>
+    <h2>Budget vs actual</h2>
+    <div id="budget"></div>
+  </section>
+
+  <section id="v-setup" hidden>
+    <div class="month"><button data-m="-1" aria-label="Previous month">‹</button><b class="mLabel"></b><button data-m="1" aria-label="Next month">›</button></div>
+    <h2>Export month to Excel</h2>
+    <div class="card">
+      <div class="row"><button id="exCsv">Share CSV file</button><button id="exCopy">Copy rows</button></div>
+      <p class="hint">Columns match the month sheet: Date, Category, Subcategory, Amount, Payment method, Person, Notes. “Copy rows” has no header — paste at the first empty row in column A.</p>
+    </div>
+    <h2>Subcategories &amp; monthly budgets</h2>
+    <div id="subs"></div>
+    <button id="subAdd" style="width:100%">+ Add subcategory</button>
+  </section>
+</main>
+
+<nav>
+  <button data-v="add" class="on">Add</button>
+  <button data-v="list">Expenses</button>
+  <button data-v="budget">Budget</button>
+  <button data-v="setup">Setup</button>
+</nav>
+
+<dialog id="subDlg">
+  <form id="subForm" method="dialog">
+    <label for="sName">Subcategory name</label><input id="sName" required>
+    <label for="sCat">Category</label><select id="sCat"></select>
+    <label for="sType">Expense type</label><select id="sType"></select>
+    <label for="sBudget">Budget / month</label><input id="sBudget" type="number" inputmode="decimal" step="0.01" min="0" required>
+    <div class="actions">
+      <button type="button" id="sDelete" class="danger">Delete</button>
+      <button type="button" id="sCancel">Cancel</button>
+      <button class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast"></div>
+
+<script>
+// Master lists taken from the Setup and Budget sheets of Budget.xlsx
+const CATEGORIES = ['Housing','Utilities','Groceries','Transport','Insurance','Health','Debt & Loans','Personal Exp','Subscriptions','Leisure & Travel','Savings & Investments','Other'];
+const TYPES = ['Fixed','Variable','Discretionary'];
+const PAYMENTS = ['', 'Credit card','Debit Card','Bank Transfer','Loan','Borrow'];
+const PEOPLE = ['', 'Person 1','Person 2','others','Joint'];
+const DEFAULT_SUBS = [
+  ['Rent','Housing','Fixed',0],['Electricity','Utilities','Variable',0],['Water','Utilities','Variable',0],
+  ['Broadband & mobile','Utilities','Fixed',0],['Supermarket','Groceries','Variable',0],['Fuel','Transport','Variable',0],
+  ['Public transport passes','Transport','Fixed',0],['Home & contents','Housing','Variable',0],['Pharmacy & dental','Health','Variable',0],
+  ['Personal 1','Personal Exp','Discretionary',0],['Streaming & software','Subscriptions','Fixed',0],
+  ['Eating out & hobbies','Leisure & Travel','Discretionary',0],['Index fund transfer','Savings & Investments','Fixed',0],
+  ['Dookan','Groceries','Variable',0],['Vegetables','Groceries','Variable',0],['Car','Utilities','Variable',0],
+  ['Medical 1','Health','Variable',0],['Medical 2','Health','Variable',0],['Personal 2','Personal Exp','Discretionary',0],
+  ['Creditcard','Debt & Loans','Fixed',0],['beauty','Personal Exp','Discretionary',0],['food','Health','Variable',0],
+  ['car insurance','Insurance','Variable',0],['Home insurance','Insurance','Variable',0],['Other','Other','Variable',0],
+  ['Loan','Debt & Loans','Variable',0]
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => n.toLocaleString(undefined, {maximumFractionDigits: 2});
+const pad = n => String(n).padStart(2, '0');
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+
+let state = JSON.parse(localStorage.getItem('kanakku') || 'null') ||
+  { nextId: 1, tx: [], subs: DEFAULT_SUBS.map(([name, cat, type, budget], i) => ({ id: 's' + i, name, cat, type, budget })) };
+const save = () => localStorage.setItem('kanakku', JSON.stringify(state));
+const newId = p => p + 'n' + state.nextId++;
+const subById = id => state.subs.find(s => s.id === id);
+
+let month = today().slice(0, 7);   // YYYY-MM being viewed
+let editingTx = null, editingSub = null;
+const monthTx = () => state.tx.filter(t => t.date.startsWith(month)).sort((a, b) => a.date.localeCompare(b.date));
+
+function toast(msg) {
+  $('toast').textContent = msg; $('toast').classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), 1800);
+}
+const options = (list, sel) => list.map(v => `<option${v === sel ? ' selected' : ''}>${esc(v)}</option>`).join('');
+
+// ---------- Add / edit expense ----------
+function fillForm(t) {
+  editingTx = t || null;
+  fillFormSubs(t ? t.sub : '');
+  $('pay').innerHTML = options(PAYMENTS, t ? t.pay : '');
+  $('person').innerHTML = options(PEOPLE, t ? t.person : '');
+  $('amount').value = t ? t.amount : '';
+  $('date').value = t ? t.date : today();
+  $('notes').value = t ? t.notes : '';
+  $('addTitle').textContent = t ? 'Edit expense' : 'Add expense';
+  $('txSave').textContent = t ? 'Save changes' : 'Save expense';
+  $('txDelete').hidden = $('txCancel').hidden = !t;
+}
+function showCat() {
+  const s = subById($('sub').value);
+  $('catHint').textContent = s ? `${s.cat} · ${s.type}` : '';
+}
+$('sub').onchange = showCat;
+$('txForm').onsubmit = e => {
+  e.preventDefault();
+  const data = { date: $('date').value, sub: $('sub').value, amount: +$('amount').value,
+                 pay: $('pay').value, person: $('person').value, notes: $('notes').value.trim() };
+  if (editingTx) Object.assign(editingTx, data); else state.tx.push({ id: newId('t'), ...data });
+  save();
+  toast(editingTx ? 'Updated' : `Saved ${fmt(data.amount)} · ${subById(data.sub).name}`);
+  const wasEdit = editingTx;
+  fillForm();
+  if (wasEdit) show('list');
+};
+$('txCancel').onclick = () => { fillForm(); show('list'); };
+$('txDelete').onclick = () => {
+  if (!confirm('Delete this expense?')) return;
+  state.tx = state.tx.filter(t => t !== editingTx); save(); fillForm(); show('list');
+};
+
+// ---------- Month views ----------
+function renderList() {
+  const tx = monthTx().reverse();
+  if (!tx.length) { $('list').innerHTML = '<p class="empty">No expenses this month.</p>'; return; }
+  let html = '', day = '';
+  for (const t of tx) {
+    if (t.date !== day) {
+      day = t.date;
+      const total = tx.filter(x => x.date === day).reduce((a, x) => a + x.amount, 0);
+      const label = new Date(day + 'T00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+      html += `<h2 class="item"><span>${label}</span><span class="num">${fmt(total)}</span></h2>`;
+    }
+    const s = subById(t.sub);
+    const meta = [s.cat, t.pay, t.person].filter(Boolean).join(' · ');
+    html += `<button class="card item" data-tx="${t.id}"><span>${esc(t.notes || s.name)}<small>${esc((t.notes ? s.name + ' · ' : '') + meta)}</small></span><b class="num">${fmt(t.amount)}</b></button>`;
+  }
+  $('list').innerHTML = html;
+}
+$('list').onclick = e => {
+  const b = e.target.closest('[data-tx]'); if (!b) return;
+  fillForm(state.tx.find(t => t.id === b.dataset.tx)); show('add');
+};
+
+function renderBudget() {
+  const actual = {};
+  for (const t of monthTx()) actual[t.sub] = (actual[t.sub] || 0) + t.amount;
+  const spent = Object.values(actual).reduce((a, b) => a + b, 0);
+  const budgeted = state.subs.reduce((a, s) => a + s.budget, 0);
+  const left = budgeted - spent;
+  $('stats').innerHTML =
+    `<div class="card"><small>Spent</small><b class="num">${fmt(spent)}</b></div>` +
+    `<div class="card"><small>Budgeted</small><b class="num">${fmt(budgeted)}</b></div>` +
+    `<div class="card"><small>${left < 0 ? 'Over budget' : 'Left'}</small><b class="num${left < 0 ? ' over' : ''}">${fmt(Math.abs(left))}</b></div>`;
+  $('budget').innerHTML = state.subs.map(s => {
+    const a = actual[s.id] || 0, over = a > s.budget;
+    const pct = s.budget ? Math.min(100, a / s.budget * 100) : (a ? 100 : 0);
+    const diff = over ? `${fmt(a - s.budget)} over` : `${fmt(s.budget - a)} left`;
+    return `<div class="card"><div class="item"><span>${esc(s.name)}<small>${esc(s.cat)} · ${s.type}</small></span>` +
+      `<span class="num" style="text-align:right"><b>${fmt(a)}</b> / ${fmt(s.budget)}<small class="${over ? 'over' : ''}" style="display:block;font-size:13px${over ? '' : ';color:var(--muted)'}">${diff}</small></span></div>` +
+      `<div class="bar"><i class="${over ? 'over' : ''}" style="width:${pct}%"></i></div></div>`;
+  }).join('');
+}
+
+// ---------- Setup: subcategories & budgets ----------
+function renderSubs() {
+  $('subs').innerHTML = state.subs.map(s =>
+    `<button class="card item" data-sub="${s.id}"><span>${esc(s.name)}<small>${esc(s.cat)} · ${s.type}</small></span><b class="num">${fmt(s.budget)}</b></button>`).join('');
+}
+function openSub(s) {
+  editingSub = s || null;
+  $('sName').value = s ? s.name : '';
+  $('sCat').innerHTML = options(CATEGORIES, s ? s.cat : 'Other');
+  $('sType').innerHTML = options(TYPES, s ? s.type : 'Variable');
+  $('sBudget').value = s ? s.budget : 0;
+  $('sDelete').hidden = !s;
+  $('subDlg').showModal();
+}
+$('subs').onclick = e => { const b = e.target.closest('[data-sub]'); if (b) openSub(subById(b.dataset.sub)); };
+$('subAdd').onclick = () => openSub();
+$('sCancel').onclick = () => $('subDlg').close();
+$('subForm').onsubmit = () => {
+  const data = { name: $('sName').value.trim(), cat: $('sCat').value, type: $('sType').value, budget: +$('sBudget').value };
+  if (editingSub) Object.assign(editingSub, data); else state.subs.push({ id: newId('s'), ...data });
+  save(); render();
+};
+$('sDelete').onclick = () => {
+  const used = state.tx.filter(t => t.sub === editingSub.id).length;
+  if (used) return alert(`"${editingSub.name}" is used by ${used} expense(s). Change those first.`);
+  if (!confirm(`Delete "${editingSub.name}"?`)) return;
+  state.subs = state.subs.filter(s => s !== editingSub); save(); $('subDlg').close(); render();
+};
+
+// ---------- Export ----------
+const clean = s => s.replace(/[\t\r\n]+/g, ' ');
+function exportRows() {
+  return monthTx().map(t => { const s = subById(t.sub); return [t.date, s.cat, s.name, t.amount, t.pay, t.person, clean(t.notes)]; });
+}
+$('exCopy').onclick = async () => {
+  const rows = exportRows(); if (!rows.length) return toast('No expenses this month');
+  await navigator.clipboard.writeText(rows.map(r => r.join('\t')).join('\n'));
+  toast(`Copied ${rows.length} rows`);
+};
+$('exCsv').onclick = async () => {
+  const rows = exportRows(); if (!rows.length) return toast('No expenses this month');
+  const q = v => /[",]/.test(v) ? `"${String(v).replace(/"/g, '""')}"` : v;
+  const csv = '﻿' + [['Date','Category','Subcategory','Amount','Payment method','Person','Notes'], ...rows].map(r => r.map(q).join(',')).join('\r\n');
+  const file = new File([csv], `expenses-${month}.csv`, { type: 'text/csv' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); } catch (e) { /* share sheet dismissed */ }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+};
+
+// ---------- Navigation ----------
+function render() {
+  const [y, m] = month.split('-');
+  const label = new Date(y, m - 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  document.querySelectorAll('.mLabel').forEach(el => el.textContent = label);
+  renderList(); renderBudget(); renderSubs();
+  if (!editingTx) { const keep = $('sub').value; fillFormSubs(keep); }
+}
+function fillFormSubs(keep) {
+  $('sub').innerHTML = '<option value="">Choose…</option>' + state.subs.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  $('sub').value = subById(keep) ? keep : ''; showCat();
+}
+function show(v) {
+  for (const s of ['add', 'list', 'budget', 'setup']) $('v-' + s).hidden = s !== v;
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  if (v !== 'add' && editingTx) fillForm();
+  render(); scrollTo(0, 0);
+}
+document.querySelector('nav').onclick = e => { if (e.target.dataset.v) show(e.target.dataset.v); };
+document.querySelectorAll('.month button').forEach(b => b.onclick = () => {
+  const [y, m] = month.split('-').map(Number);
+  const d = new Date(y, m - 1 + +b.dataset.m);
+  month = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; render();
+});
+
+fillForm(); render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
